@@ -19,7 +19,8 @@ type ContactMessageType = { id: string; name: string | null; email: string | nul
 type UserType = {
   id: string; name: string | null; username: string | null; bio: string | null;
   avatarUrl: string | null; image: string | null; buttonStyle: string; themeColor: string | null;
-  layoutStyle: string; vcardEnabled: boolean; contactFormEnabled: boolean;
+  layoutStyle: string; avatarAlign: string; bannerUrl: string | null;
+  vcardEnabled: boolean; contactFormEnabled: boolean;
   contactFormAskName: boolean; contactFormAskEmail: boolean; contactFormAskPhone: boolean; contactFormAskMessage: boolean;
   seoTitle: string | null; seoDescription: string | null;
   bgType: string; bgColor: string | null; bgGradient1: string | null; bgGradient2: string | null;
@@ -60,8 +61,10 @@ export default function DashboardClient({
   // Image upload state
   const [photoPreview, setPhotoPreview] = useState<string>('')
   const [bgImagePreview, setBgImagePreview] = useState<string>(user.bgImageUrl || '')
+  const [bannerPreview, setBannerPreview] = useState<string>(user.bannerUrl || '')
   const photoInputRef = useRef<HTMLInputElement>(null)
   const bgImageInputRef = useRef<HTMLInputElement>(null)
+  const bannerInputRef = useRef<HTMLInputElement>(null)
 
   // Fluid tabs sliding animation state
   const tabsContainerRef = useRef<HTMLDivElement>(null)
@@ -112,11 +115,18 @@ export default function DashboardClient({
     readFileAsDataURL(file, 5, setBgImagePreview, (msg) => setProfileMsg({ ok: false, text: msg }))
   }
 
+  function handleBannerFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    readFileAsDataURL(file, 4, setBannerPreview, (msg) => setProfileMsg({ ok: false, text: msg }))
+  }
+
   async function handleProfileSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setProfileMsg(null)
     const fd = new FormData(e.currentTarget)
     if (avatarPreview) fd.set('avatarUrl', avatarPreview)
     if (bgImagePreview) fd.set('bgImageUrl', bgImagePreview)
+    if (bannerPreview) fd.set('bannerUrl', bannerPreview)
     startTransition(async () => {
       const result = await updateProfile(fd)
       if (result?.error) setProfileMsg({ ok: false, text: result.error })
@@ -301,6 +311,41 @@ export default function DashboardClient({
                 <input type="hidden" name="username" value={user.username || ''} />
 
                 <div className="section-divider"><span>Diseño Visual</span></div>
+
+                <div className="input-group">
+                  <label>Banner de Portada</label>
+                  <div
+                    className="bg-image-picker"
+                    onClick={() => bannerInputRef.current?.click()}
+                  >
+                    {bannerPreview && (
+                      <img src={bannerPreview} alt="Banner" className="image-picker-preview" style={{ objectFit: 'cover' }} />
+                    )}
+                    {bannerPreview
+                      ? <div className="bg-image-overlay"><i className="fa-solid fa-pencil"></i><span>Cambiar banner</span></div>
+                      : <div className="bg-image-placeholder"><i className="fa-solid fa-image"></i><span>Subir banner</span></div>
+                    }
+                  </div>
+                  <input ref={bannerInputRef} type="file" accept="image/*" onChange={handleBannerFileChange} hidden title="Subir banner de portada" />
+                  <p className="avatar-hint mt-05rem text-center w-full">
+                    <small className="opacity-70">Recomendado: 1200x400 px (Formato panorámico)</small>
+                  </p>
+                  {bannerPreview && (
+                    <button type="button" className="btn-danger btn-remove-image mt-05rem" onClick={() => setBannerPreview('')}>
+                      <i className="fa-solid fa-trash mr-4px"></i> Quitar banner
+                    </button>
+                  )}
+                </div>
+
+                <div className="input-group">
+                  <label htmlFor="avatarAlign">Posición de Foto (Avatar)</label>
+                  <select id="avatarAlign" name="avatarAlign" className="platform-select text-black" defaultValue={user.avatarAlign || 'center'}>
+                    <option value="left">Alineado a la Izquierda</option>
+                    <option value="center">Centrado (Por Defecto)</option>
+                    <option value="right">Alineado a la Derecha</option>
+                  </select>
+                </div>
+
                 <div className="input-group">
                   <label htmlFor="layoutStyle">Diseño del Perfil</label>
                   <select id="layoutStyle" name="layoutStyle" className="platform-select text-black" defaultValue={user.layoutStyle || 'list'}>

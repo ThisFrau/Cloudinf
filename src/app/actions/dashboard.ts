@@ -18,6 +18,8 @@ export async function updateProfile(formData: FormData) {
   const themeColorRaw = formData.get("themeColor") as string
   const themeColor = themeColorRaw || null
   const layoutStyle = formData.get("layoutStyle") as string || "list"
+  const avatarAlign = formData.get("avatarAlign") as string || "center"
+  const bannerUrl = (formData.get("bannerUrl") as string) || null
   const vcardEnabled = formData.get("vcardEnabled") === "true"
   const contactFormEnabled = formData.get("contactFormEnabled") === "true"
   const contactFormAskName = formData.get("contactFormAskName") === "true"
@@ -49,7 +51,7 @@ export async function updateProfile(formData: FormData) {
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        name, bio, avatarUrl, buttonStyle, themeColor, layoutStyle,
+        name, bio, avatarUrl, buttonStyle, themeColor, layoutStyle, avatarAlign, bannerUrl,
         vcardEnabled, contactFormEnabled, 
         contactFormAskName, contactFormAskEmail, contactFormAskPhone, contactFormAskMessage,
         seoTitle, seoDescription,

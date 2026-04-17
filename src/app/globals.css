@@ -172,10 +172,59 @@ a {
    PROFILE SECTION
 ========================================= */
 .profile-section {
-    text-align: center;
     display: flex;
     flex-direction: column;
+    width: 100%;
+}
+
+.profile-banner-img {
+    width: calc(100% + 2.5rem);
+    height: 150px;
+    object-fit: cover;
+    border-radius: 28px 28px 0 0;
+    margin-top: -2.5rem;
+    margin-left: -1.25rem;
+    background-color: var(--card-bg);
+}
+
+.profile-header-content {
+    display: flex;
+    width: 100%;
+}
+
+.profile-align-center {
+    flex-direction: column;
     align-items: center;
+    text-align: center;
+}
+
+.profile-align-left {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
+}
+
+.profile-align-right {
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.profile-text-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.profile-align-center .profile-text-content {
+    align-items: center;
+}
+.profile-align-left .profile-text-content,
+.profile-align-right .profile-text-content {
+    align-items: flex-start;
+    margin-top: 0.5rem;
 }
 
 .avatar-wrapper {
@@ -183,6 +232,14 @@ a {
     width: 96px;
     height: 96px;
     margin-bottom: 0.75rem;
+    flex-shrink: 0;
+}
+
+.profile-section.has-banner .avatar-wrapper {
+    margin-top: -48px;
+}
+.profile-section.has-banner .avatar-wrapper .avatar {
+    border: 4px solid var(--bg-color);
 }
 
 .avatar {
@@ -1317,6 +1374,9 @@ body { top: 0 !important; }
 .opacity-70 { opacity: 0.7; }
 .cursor-pointer { cursor: pointer; }
 .justify-between { justify-content: space-between; }
+.justify-start { justify-content: flex-start; }
+.w-full { width: 100%; }
+.mt-05rem { margin-top: 0.5rem; }
 
 /* Avatar Viewer Modal */
 .avatar-viewer-overlay { z-index: 9999; display: flex; justify-content: center; align-items: center; background-color: rgba(0,0,0,0.85); }

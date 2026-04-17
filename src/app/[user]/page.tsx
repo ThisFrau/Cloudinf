@@ -116,20 +116,28 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
 
       <main className="container public-container">
         {/* ── Header / Profile ── */}
-        <header className="profile-section">
+        <header className={`profile-section ${user.bannerUrl ? 'has-banner' : ''}`}>
           <LanguageSwitcher />
 
-          <AvatarViewer 
-            src={user.avatarUrl || user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=random&color=fff&size=200`}
-            alt="Perfil"
-          />
-          <h1 className="name">{user.name || user.username}</h1>
-          <p className="bio">{user.bio || "¡Este usuario no ha escrito una biografía!"}</p>
+          {user.bannerUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.bannerUrl} alt="Banner de perfil" className="profile-banner-img" />
+          )}
 
+          <div className={`profile-header-content profile-align-${user.avatarAlign || 'center'}`}>
+            <AvatarViewer 
+              src={user.avatarUrl || user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=random&color=fff&size=200`}
+              alt="Perfil"
+            />
+            <div className="profile-text-content">
+              <h1 className="name">{user.name || user.username}</h1>
+              <p className="bio">{user.bio || "¡Este usuario no ha escrito una biografía!"}</p>
+            </div>
+          </div>
 
           {/* Social icons row */}
           {logoLinks.length > 0 && (
-            <div className="social-icons mt-1rem flex-wrap-center">
+            <div className={`social-icons mt-1rem flex-wrap-center ${user.avatarAlign !== 'center' ? 'justify-start' : ''}`}>
               {logoLinks.map((link) => {
                 const platform = PLATFORMS[link.platform] || PLATFORMS.other;
                 return (

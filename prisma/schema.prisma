@@ -18,7 +18,9 @@ model User {
   image              String?
   buttonStyle        String           @default("default")
   themeColor         String?
-  layoutStyle        String           @default("list")
+  layoutStyle           String           @default("list")
+  avatarAlign           String           @default("center")
+  bannerUrl             String?
   vcardEnabled          Boolean          @default(false)
   contactFormEnabled    Boolean          @default(false)
   contactFormAskName    Boolean          @default(true)
