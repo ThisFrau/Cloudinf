@@ -37,8 +37,10 @@ model User {
   contactMessages    ContactMessage[]
   carouselPhotos     CarouselPhoto[]
   bookingConfig      BookingConfig?
+  nfcCards           NfcCard[]
   createdAt          DateTime         @default(now())
 }
+
 
 model Account {
   id                String  @id @default(cuid())
@@ -119,3 +121,13 @@ model Booking {
   config    BookingConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
   createdAt DateTime      @default(now())
 }
+
+model NfcCard {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  status    String   @default("unclaimed") // "unclaimed" | "claimed"
+  userId    String?  // The user this card is bound to
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+

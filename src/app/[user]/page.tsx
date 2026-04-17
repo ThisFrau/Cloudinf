@@ -57,12 +57,12 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
 
   if (!user) notFound();
 
-  const logoLinks = user.links.filter(link =>
+  const logoLinks = user.links.filter((link: any) =>
     link.type !== 'header' && (
       link.displayStyle === 'icon' || (link.displayStyle === 'auto' && SOCIAL_LOGOS.includes(link.platform))
     )
   );
-  const barLinks = user.links.filter(link =>
+  const barLinks = user.links.filter((link: any) =>
     link.type === 'header' || link.displayStyle === 'rich' || link.displayStyle === 'button' ||
     (link.displayStyle === 'auto' && !SOCIAL_LOGOS.includes(link.platform))
   );

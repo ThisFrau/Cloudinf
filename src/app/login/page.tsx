@@ -11,6 +11,7 @@ function LoginForm() {
   const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
   const registered = searchParams.get("registered")
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -25,7 +26,7 @@ function LoginForm() {
       if (res?.error) {
         setError("Correo o contraseña incorrectos.")
       } else {
-        window.location.href = "/dashboard"
+        window.location.href = callbackUrl
       }
     })
   }
@@ -48,7 +49,7 @@ function LoginForm() {
         {/* Botón de Google */}
         <button
           type="button"
-          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          onClick={() => signIn("google", { callbackUrl })}
           className="btn-google"
         >
           <svg width="20" height="20" viewBox="0 0 48 48" className="google-icon">
@@ -76,7 +77,7 @@ function LoginForm() {
           </button>
 
           <div className="text-center mt-1rem">
-            <Link href="/register" className="bio text-underline">¿No tienes cuenta? Regístrate aquí</Link>
+            <Link href={`/register?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="bio text-underline">¿No tienes cuenta? Regístrate aquí</Link>
           </div>
         </form>
       </div>

@@ -5,14 +5,20 @@ import Link from "next/link"
 import { useState, useTransition } from "react"
 import { registerUser } from "@/app/actions/auth"
 
-export default function RegisterPage() {
+import { useSearchParams } from "next/navigation"
+import { Suspense } from "react"
+
+function RegisterForm() {
   const [error, setError] = useState("")
   const [isPending, startTransition] = useTransition()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
     const formData = new FormData(e.currentTarget)
+    formData.append("callbackUrl", callbackUrl)
     const password = formData.get("password") as string
     const confirm = formData.get("confirm") as string
     if (password !== confirm) {
@@ -38,7 +44,7 @@ export default function RegisterPage() {
         {/* Botón de Google */}
         <button
           type="button"
-          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          onClick={() => signIn("google", { callbackUrl })}
           className="btn-google"
         >
           <svg width="20" height="20" viewBox="0 0 48 48" className="google-icon">
@@ -70,10 +76,18 @@ export default function RegisterPage() {
           </button>
 
           <div className="text-center mt-1rem">
-            <Link href="/login" className="bio text-underline">¿Ya tienes cuenta? Inicia sesión</Link>
+            <Link href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="bio text-underline">¿Ya tienes cuenta? Inicia sesión</Link>
           </div>
         </form>
       </div>
     </main>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   )
 }

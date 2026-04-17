@@ -8,6 +8,7 @@ export async function registerUser(formData: FormData) {
   const email = (formData.get("email") as string)?.toLowerCase().trim()
   const password = formData.get("password") as string
   const confirm = formData.get("confirm") as string
+  const callbackUrl = formData.get("callbackUrl") as string || "/dashboard"
 
   if (!email || !password || !confirm)
     return { error: "Todos los campos son obligatorios." }
@@ -33,7 +34,7 @@ export async function registerUser(formData: FormData) {
     data: { email, password: hashed, username, name: username },
   })
 
-  redirect("/login?registered=1")
+  redirect(`/login?registered=1&callbackUrl=${encodeURIComponent(callbackUrl)}`)
 }
 
 export async function loginUser(_: FormData) {
