@@ -15,11 +15,12 @@ type LinkType = { id: string; title: string; url: string; platform: string; icon
 type CarouselPhotoType = { id: string; imageUrl: string; caption: string | null; order: number }
 type BookingType = { id: string; name: string; email: string; date: string; time: string; note: string | null; status: string; createdAt: Date }
 type BookingConfigType = { id: string; title: string; availableDays: string; startTime: string; endTime: string; slotDuration: number }
-type ContactMessageType = { id: string; name: string; email: string; message: string; createdAt: Date }
+type ContactMessageType = { id: string; name: string | null; email: string | null; phone: string | null; message: string | null; createdAt: Date }
 type UserType = {
   id: string; name: string | null; username: string | null; bio: string | null;
   avatarUrl: string | null; image: string | null; buttonStyle: string; themeColor: string | null;
   layoutStyle: string; vcardEnabled: boolean; contactFormEnabled: boolean;
+  contactFormAskName: boolean; contactFormAskEmail: boolean; contactFormAskPhone: boolean; contactFormAskMessage: boolean;
   seoTitle: string | null; seoDescription: string | null;
   bgType: string; bgColor: string | null; bgGradient1: string | null; bgGradient2: string | null;
   bgGradientDir: string | null; bgImageUrl: string | null;
@@ -52,6 +53,7 @@ export default function DashboardClient({
   const [selectedPlatform, setSelectedPlatform] = useState('whatsapp')
   const [bgType, setBgType] = useState(user.bgType || 'default')
   const [showQR, setShowQR] = useState(false)
+  const [contactFormEnabled, setContactFormEnabled] = useState(user.contactFormEnabled)
   const [isPending, startTransition] = useTransition()
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
@@ -396,9 +398,30 @@ export default function DashboardClient({
                   <input id="spotifyProfileUrl" name="spotifyProfileUrl" type="text" defaultValue={user.spotifyProfileUrl || ''} placeholder="https://open.spotify.com/artist/..." />
                 </div>
                 <div className="checkbox-row mt-10px">
-                  <input type="checkbox" id="contactFormEnabled" name="contactFormEnabled" defaultChecked={user.contactFormEnabled} value="true" />
+                  <input type="checkbox" id="contactFormEnabled" name="contactFormEnabled" checked={contactFormEnabled} onChange={e => setContactFormEnabled(e.target.checked)} value="true" />
                   <label htmlFor="contactFormEnabled">Activar buzón de mensajes (Formulario de Contacto)</label>
                 </div>
+                {contactFormEnabled && (
+                  <div className="contact-fields-config mt-05rem" style={{ marginLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <small className="bio text-sm">¿Qué datos quieres pedirle al visitante?</small>
+                    <div className="checkbox-row">
+                      <input type="checkbox" id="contactFormAskName" name="contactFormAskName" defaultChecked={user.contactFormAskName} value="true" />
+                      <label htmlFor="contactFormAskName" className="text-sm">Nombre</label>
+                    </div>
+                    <div className="checkbox-row">
+                      <input type="checkbox" id="contactFormAskEmail" name="contactFormAskEmail" defaultChecked={user.contactFormAskEmail} value="true" />
+                      <label htmlFor="contactFormAskEmail" className="text-sm">Email</label>
+                    </div>
+                    <div className="checkbox-row">
+                      <input type="checkbox" id="contactFormAskPhone" name="contactFormAskPhone" defaultChecked={user.contactFormAskPhone} value="true" />
+                      <label htmlFor="contactFormAskPhone" className="text-sm">Teléfono o WhatsApp</label>
+                    </div>
+                    <div className="checkbox-row">
+                      <input type="checkbox" id="contactFormAskMessage" name="contactFormAskMessage" defaultChecked={user.contactFormAskMessage} value="true" />
+                      <label htmlFor="contactFormAskMessage" className="text-sm">Mensaje/Comentario</label>
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-1rem">
                   {profileMsg && <p className={profileMsg.ok ? 'text-success' : 'text-error'}>{profileMsg.text}</p>}
@@ -599,8 +622,10 @@ export default function DashboardClient({
                       </button>
                     </div>
                   </div>
-                  <p className="bio text-sm">{msg.email}</p>
-                  <p className="msg-text mt-05rem">{msg.message}</p>
+                  <p className="bio text-sm">
+                    {msg.email} {msg.email && msg.phone && ' • '} {msg.phone}
+                  </p>
+                  {msg.message && <p className="msg-text mt-05rem">{msg.message}</p>}
                 </div>
               ))}
             </div>

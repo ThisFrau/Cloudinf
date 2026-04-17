@@ -240,7 +240,13 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
 
         {/* ── Contact Form ── */}
         {user.contactFormEnabled && (
-          <ContactForm username={username} />
+          <ContactForm 
+            username={username} 
+            askName={user.contactFormAskName}
+            askEmail={user.contactFormAskEmail}
+            askPhone={user.contactFormAskPhone}
+            askMessage={user.contactFormAskMessage}
+          />
         )}
 
 

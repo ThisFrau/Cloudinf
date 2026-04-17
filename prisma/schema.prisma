@@ -19,8 +19,12 @@ model User {
   buttonStyle        String           @default("default")
   themeColor         String?
   layoutStyle        String           @default("list")
-  vcardEnabled       Boolean          @default(false)
-  contactFormEnabled Boolean          @default(false)
+  vcardEnabled          Boolean          @default(false)
+  contactFormEnabled    Boolean          @default(false)
+  contactFormAskName    Boolean          @default(true)
+  contactFormAskEmail   Boolean          @default(true)
+  contactFormAskPhone   Boolean          @default(false)
+  contactFormAskMessage Boolean          @default(true)
   seoTitle           String?
   seoDescription     String?
   bgType             String           @default("default")
@@ -77,9 +81,10 @@ model Link {
 
 model ContactMessage {
   id        String   @id @default(cuid())
-  name      String
-  email     String
-  message   String
+  name      String?
+  email     String?
+  phone     String?
+  message   String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())

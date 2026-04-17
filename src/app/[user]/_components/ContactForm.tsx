@@ -3,7 +3,19 @@
 import { useState } from 'react'
 import { sendContactMessage } from '@/app/actions/dashboard'
 
-export default function ContactForm({ username }: { username: string }) {
+export default function ContactForm({
+  username,
+  askName = true,
+  askEmail = true,
+  askPhone = false,
+  askMessage = true
+}: {
+  username: string;
+  askName?: boolean;
+  askEmail?: boolean;
+  askPhone?: boolean;
+  askMessage?: boolean;
+}) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [isPending, setIsPending] = useState(false)
 
@@ -23,18 +35,30 @@ export default function ContactForm({ username }: { username: string }) {
     <section className="contact-form-section">
       <h2 className="booking-public-title"><i className="fa-solid fa-envelope mr-8px"></i>Enviar un Mensaje</h2>
       <form onSubmit={handleSubmit} className="booking-public-form">
-        <div className="input-group">
-          <label htmlFor="cf-name">Tu Nombre</label>
-          <input id="cf-name" name="name" type="text" placeholder="Juan Pérez" required />
-        </div>
-        <div className="input-group">
-          <label htmlFor="cf-email">Tu Email</label>
-          <input id="cf-email" name="email" type="email" placeholder="tu@email.com" required />
-        </div>
-        <div className="input-group">
-          <label htmlFor="cf-message">Mensaje</label>
-          <textarea id="cf-message" name="message" rows={4} placeholder="Escribe tu mensaje aquí..." required />
-        </div>
+        {askName && (
+          <div className="input-group">
+            <label htmlFor="cf-name">Tu Nombre</label>
+            <input id="cf-name" name="name" type="text" placeholder="Juan Pérez" required />
+          </div>
+        )}
+        {askEmail && (
+          <div className="input-group">
+            <label htmlFor="cf-email">Tu Email</label>
+            <input id="cf-email" name="email" type="email" placeholder="tu@email.com" required />
+          </div>
+        )}
+        {askPhone && (
+          <div className="input-group">
+            <label htmlFor="cf-phone">Tu Teléfono / WhatsApp</label>
+            <input id="cf-phone" name="phone" type="tel" placeholder="+54 9 11..." required />
+          </div>
+        )}
+        {askMessage && (
+          <div className="input-group">
+            <label htmlFor="cf-message">Mensaje</label>
+            <textarea id="cf-message" name="message" rows={4} placeholder="Escribe tu mensaje aquí..." required />
+          </div>
+        )}
         {msg && <p className={msg.ok ? 'text-success' : 'text-error'}>{msg.text}</p>}
         <button type="submit" className="btn-primary" disabled={isPending}>
           {isPending ? 'Enviando...' : 'Enviar Mensaje'}

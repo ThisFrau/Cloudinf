@@ -20,6 +20,10 @@ export async function updateProfile(formData: FormData) {
   const layoutStyle = formData.get("layoutStyle") as string || "list"
   const vcardEnabled = formData.get("vcardEnabled") === "true"
   const contactFormEnabled = formData.get("contactFormEnabled") === "true"
+  const contactFormAskName = formData.get("contactFormAskName") === "true"
+  const contactFormAskEmail = formData.get("contactFormAskEmail") === "true"
+  const contactFormAskPhone = formData.get("contactFormAskPhone") === "true"
+  const contactFormAskMessage = formData.get("contactFormAskMessage") === "true"
   const seoTitle = (formData.get("seoTitle") as string) || null
   const seoDescription = (formData.get("seoDescription") as string) || null
   // Background
@@ -46,7 +50,9 @@ export async function updateProfile(formData: FormData) {
       where: { id: session.user.id },
       data: {
         name, bio, avatarUrl, buttonStyle, themeColor, layoutStyle,
-        vcardEnabled, contactFormEnabled, seoTitle, seoDescription,
+        vcardEnabled, contactFormEnabled, 
+        contactFormAskName, contactFormAskEmail, contactFormAskPhone, contactFormAskMessage,
+        seoTitle, seoDescription,
         bgType, bgColor, bgGradient1, bgGradient2, bgGradientDir, bgImageUrl,
         translateEnabled, spotifyProfileUrl, carouselEnabled,
         ...(username ? { username } : {}),
@@ -209,18 +215,19 @@ export async function deleteBooking(id: string) {
 // ─── Contact Message ───────────────────────────────────────────────────────────
 export async function sendContactMessage(formData: FormData) {
   const username = formData.get("username") as string
-  const name     = formData.get("name") as string
-  const email    = formData.get("email") as string
-  const message  = formData.get("message") as string
+  const name     = (formData.get("name") as string) || null
+  const email    = (formData.get("email") as string) || null
+  const phone    = (formData.get("phone") as string) || null
+  const message  = (formData.get("message") as string) || null
 
-  if (!name || !email || !message) return { error: "Completa todos los campos." }
+  if (!name && !email && !phone && !message) return { error: "Formulario vacío." }
 
   const user = await prisma.user.findUnique({ where: { username } })
   if (!user) return { error: "Usuario no encontrado." }
 
   try {
     await prisma.contactMessage.create({
-      data: { name, email, message, userId: user.id },
+      data: { name, email, phone, message, userId: user.id },
     })
     return { success: true }
   } catch {
