@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import BookingSection from "./_components/BookingSection";
 import ContactForm from "./_components/ContactForm";
 import LanguageSwitcher from "./_components/LanguageSwitcher";
-import VCardButton from "./_components/VCardButton";
+
 
 export async function generateMetadata(
   { params }: { params: Promise<{ user: string }> }
@@ -129,9 +129,6 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
           <h1 className="name">{user.name || user.username}</h1>
           <p className="bio">{user.bio || "¡Este usuario no ha escrito una biografía!"}</p>
 
-          <div className="vcard-btn-wrapper">
-            <VCardButton username={user.username || ''} />
-          </div>
 
           {/* Social icons row */}
           {logoLinks.length > 0 && (
