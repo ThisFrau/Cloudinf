@@ -232,11 +232,55 @@ export default function DashboardClient({
             <div className="qr-box mb-1rem">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/${user.username}`)}`}
+                id="qr-img"
+                crossOrigin="anonymous"
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&data=${encodeURIComponent(`${typeof window !== 'undefined' ? window.location.origin : ''}/${user.username}`)}`}
                 alt="QR Code" width="250" height="250"
               />
             </div>
-            <button className="btn-danger w-full" onClick={() => setShowQR(false)}>Cerrar</button>
+            <div className="qr-download-btns mb-1rem">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  const img = document.getElementById('qr-img') as HTMLImageElement
+                  const canvas = document.createElement('canvas')
+                  canvas.width = 400; canvas.height = 400
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx || !img) return
+                  ctx.fillStyle = '#ffffff'
+                  ctx.fillRect(0, 0, 400, 400)
+                  ctx.drawImage(img, 0, 0, 400, 400)
+                  const a = document.createElement('a')
+                  a.href = canvas.toDataURL('image/png')
+                  a.download = `qr-${user.username}.png`
+                  a.click()
+                }}
+              >
+                <i className="fa-solid fa-download mr-4px"></i> PNG
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  const img = document.getElementById('qr-img') as HTMLImageElement
+                  const canvas = document.createElement('canvas')
+                  canvas.width = 400; canvas.height = 400
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx || !img) return
+                  ctx.fillStyle = '#ffffff'
+                  ctx.fillRect(0, 0, 400, 400)
+                  ctx.drawImage(img, 0, 0, 400, 400)
+                  const a = document.createElement('a')
+                  a.href = canvas.toDataURL('image/jpeg', 0.95)
+                  a.download = `qr-${user.username}.jpg`
+                  a.click()
+                }}
+              >
+                <i className="fa-solid fa-download mr-4px"></i> JPG
+              </button>
+            </div>
+            <button type="button" className="btn-danger w-full" onClick={() => setShowQR(false)}>Cerrar</button>
           </div>
         </div>
       )}

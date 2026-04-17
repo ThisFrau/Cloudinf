@@ -1107,10 +1107,67 @@ a {
 @media (min-width: 768px) { .dashboard-grid-2 { grid-template-columns: 1fr 1fr; align-items: start; } }
 
 /* === MODAL === */
-.modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); padding: 1rem; }
 .modal-content { background: #1a1f2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem; width: min(400px, 90vw); box-shadow: 0 40px 80px rgba(0,0,0,0.6); }
-.qr-box { display: flex; justify-content: center; }
-.qr-box img { border-radius: 12px; }
+.qr-box { display: flex; justify-content: center; background: white; border-radius: 16px; padding: 1rem; }
+.qr-box img { border-radius: 8px; width: 100%; max-width: 250px; height: auto; display: block; }
+.qr-download-btns { display: flex; gap: 0.75rem; margin-top: 0.75rem; }
+.qr-download-btns button, .qr-download-btns a { flex: 1; text-align: center; }
+
+/* =========================================
+   RESPONSIVE — MOBILE FIRST
+========================================= */
+@media (max-width: 480px) {
+  /* Container shrinks padding */
+  .container { padding: 1.25rem 0.75rem; gap: 1rem; }
+  .public-container { border-radius: 20px; margin: 0.5rem auto; }
+
+  /* Profile banner edges to match smaller radius */
+  .profile-banner-img { border-radius: 20px 20px 0 0; width: calc(100% + 1.5rem); margin-left: -0.75rem; margin-top: -1.25rem; height: 120px; }
+
+  /* Avatar */
+  .avatar-wrapper { width: 80px; height: 80px; }
+  .name { font-size: 1.1rem; }
+  .bio { font-size: 0.88rem; }
+
+  /* Social icons smaller gap */
+  .social-icons { gap: 0.75rem; }
+  .icon-link { width: 40px; height: 40px; font-size: 1rem; }
+
+  /* Dashboard header stacks vertically */
+  .dashboard-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .dashboard-actions-row { flex-wrap: wrap; }
+
+  /* Tabs smaller */
+  .tab-btn { padding: 0.5rem 0.6rem; font-size: 0.78rem; gap: 4px; }
+  .tab-btn span { display: none; } /* show only icons on very small screens */
+
+  /* Forms full width inputs */
+  .form-container { padding: 1rem; }
+  .modal-content { padding: 1.25rem; border-radius: 16px; }
+
+  /* Booking */
+  .booking-card { padding: 0.75rem; }
+  .slots-grid { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+  .slot-btn { font-size: 0.78rem; padding: 0.4rem; }
+
+  /* QR download buttons stack on small screens */
+  .qr-download-btns { flex-direction: column; }
+}
+
+@media (max-width: 600px) {
+  /* Max-width dashboard container */
+  .max-w-1000 { padding: 0.75rem 0.5rem; }
+
+  /* Dashboard grid stays 1 col */
+  .dashboard-grid-2 { grid-template-columns: 1fr; }
+
+  /* Link items smaller */
+  .link-item-dashboard { padding: 0.6rem 0.75rem; gap: 0.5rem; }
+
+  /* Photo grid 2 cols stays, but less gap */
+  .photo-grid { gap: 0.5rem; }
+}
 
 /* === PHOTO GALLERY === */
 .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
