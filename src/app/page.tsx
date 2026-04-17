@@ -19,9 +19,9 @@ export default function Home() {
             Acércala al celular de tu cliente y comparte tu contacto, portfolio y redes en segundos mediante la tecnología <strong>NFC</strong>. Sin instalar apps.
         </p>
         
-        <div className="hero-buttons w-full">
-            <Link href="/register" className="btn-primary flex-auto w-full mb-1rem">Obtener mi Perfil</Link>
-            <Link href="/login" className="btn-secondary flex-auto w-full">Ya tengo perfil</Link>
+        <div className="hero-buttons w-full" style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+            <Link href="/register" className="btn-primary" style={{ flex: '1 1 140px', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', margin: 0 }}>Obtener mi Perfil</Link>
+            <Link href="/login" className="btn-secondary" style={{ flex: '1 1 140px', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', margin: 0 }}>Ya tengo perfil</Link>
         </div>
 
         <div className="hero-steps-box">
