@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import BookingSection from "./_components/BookingSection";
 import ContactForm from "./_components/ContactForm";
 import LanguageSwitcher from "./_components/LanguageSwitcher";
+import AvatarViewer from "./_components/AvatarViewer";
 
 
 export async function generateMetadata(
@@ -118,14 +119,10 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
         <header className="profile-section">
           <LanguageSwitcher />
 
-          <div className="avatar-wrapper">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={user.avatarUrl || user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=random&color=fff&size=200`}
-              alt="Perfil" className="avatar"
-            />
-            <div className="status-indicator"></div>
-          </div>
+          <AvatarViewer 
+            src={user.avatarUrl || user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=random&color=fff&size=200`}
+            alt="Perfil"
+          />
           <h1 className="name">{user.name || user.username}</h1>
           <p className="bio">{user.bio || "¡Este usuario no ha escrito una biografía!"}</p>
 

@@ -268,7 +268,10 @@ export default function DashboardClient({
                     <div className="avatar-upload-overlay"><i className="fa-solid fa-camera"></i><span>Cambiar foto</span></div>
                   </div>
                   <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarFileChange} hidden title="Subir foto" />
-                  <p className="avatar-hint">Haz clic para subir desde tu dispositivo</p>
+                  <p className="avatar-hint">
+                    Haz clic para subir desde tu dispositivo<br />
+                    <small style={{ opacity: 0.7 }}>Recomendado: 500x500 px (Formato 1:1)</small>
+                  </p>
                 </div>
 
                 <div className="input-group">
@@ -374,6 +377,9 @@ export default function DashboardClient({
                       }
                     </div>
                     <input ref={bgImageInputRef} type="file" accept="image/*" onChange={handleBgImageFileChange} hidden title="Subir imagen de fondo" />
+                    <p className="avatar-hint mt-05rem text-center" style={{ width: '100%' }}>
+                      <small style={{ opacity: 0.7 }}>Recomendado: 1080x1920 px (Formato retrato)</small>
+                    </p>
                     {bgImagePreview && (
                       <button type="button" className="btn-danger btn-remove-image" onClick={() => setBgImagePreview('')}>
                         <i className="fa-solid fa-trash mr-4px"></i> Quitar imagen
