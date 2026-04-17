@@ -1312,3 +1312,14 @@ body { top: 0 !important; }
 .btn-auto-width { width: auto !important; margin: 0 !important; }
 .form-inline { margin: 0; display: flex; }
 .contact-fields-wrapper { margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* Further Extractions / Utilities */
+.opacity-70 { opacity: 0.7; }
+.cursor-pointer { cursor: pointer; }
+.justify-between { justify-content: space-between; }
+
+/* Avatar Viewer Modal */
+.avatar-viewer-overlay { z-index: 9999; display: flex; justify-content: center; align-items: center; background-color: rgba(0,0,0,0.85); }
+.avatar-viewer-content { padding: 0; background: transparent; max-width: 90vw; max-height: 90vh; position: relative; }
+.avatar-viewer-close { position: absolute; top: -40px; right: 0; border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; justify-content: center; align-items: center; }
+.avatar-viewer-img { width: 100%; height: auto; max-height: 85vh; object-fit: contain; border-radius: 12px; }

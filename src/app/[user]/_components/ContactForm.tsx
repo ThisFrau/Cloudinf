@@ -35,8 +35,7 @@ export default function ContactForm({
   return (
     <section className="contact-form-section">
       <div 
-        className="booking-public-title flex-wrap-center" 
-        style={{ cursor: 'pointer', justifyContent: 'space-between', marginBottom: isOpen ? '1rem' : '0' }}
+        className={`booking-public-title flex-wrap-center cursor-pointer justify-between ${isOpen ? 'mb-1rem' : ''}`} 
         onClick={() => setIsOpen(!isOpen)}
       >
         <span><i className="fa-solid fa-envelope mr-8px"></i>Enviar un Mensaje</span>

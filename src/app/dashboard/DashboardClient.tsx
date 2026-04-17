@@ -270,7 +270,7 @@ export default function DashboardClient({
                   <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarFileChange} hidden title="Subir foto" />
                   <p className="avatar-hint">
                     Haz clic para subir desde tu dispositivo<br />
-                    <small style={{ opacity: 0.7 }}>Recomendado: 500x500 px (Formato 1:1)</small>
+                    <small className="opacity-70">Recomendado: 500x500 px (Formato 1:1)</small>
                   </p>
                 </div>
 
@@ -377,8 +377,8 @@ export default function DashboardClient({
                       }
                     </div>
                     <input ref={bgImageInputRef} type="file" accept="image/*" onChange={handleBgImageFileChange} hidden title="Subir imagen de fondo" />
-                    <p className="avatar-hint mt-05rem text-center" style={{ width: '100%' }}>
-                      <small style={{ opacity: 0.7 }}>Recomendado: 1080x1920 px (Formato retrato)</small>
+                    <p className="avatar-hint mt-05rem text-center w-full">
+                      <small className="opacity-70">Recomendado: 1080x1920 px (Formato retrato)</small>
                     </p>
                     {bgImagePreview && (
                       <button type="button" className="btn-danger btn-remove-image" onClick={() => setBgImagePreview('')}>

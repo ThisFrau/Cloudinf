@@ -8,9 +8,8 @@ export default function AvatarViewer({ src, alt }: { src: string; alt: string })
   return (
     <>
       <div 
-        className="avatar-wrapper" 
+        className="avatar-wrapper cursor-pointer" 
         onClick={() => setIsOpen(true)}
-        style={{ cursor: 'pointer' }}
         title="Ver foto"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -20,19 +19,18 @@ export default function AvatarViewer({ src, alt }: { src: string; alt: string })
 
       {isOpen && (
         <div 
-          className="modal-overlay" 
+          className="modal-overlay avatar-viewer-overlay" 
           onClick={() => setIsOpen(false)}
-          style={{ zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.85)' }}
         >
           <div 
-            className="modal-content" 
+            className="modal-content avatar-viewer-content" 
             onClick={(e) => e.stopPropagation()} 
-            style={{ padding: 0, background: 'transparent', maxWidth: '90vw', maxHeight: '90vh', position: 'relative' }}
           >
             <button 
+              type="button"
+              title="Cerrar vista"
               onClick={() => setIsOpen(false)}
-              className="btn-danger text-sm"
-              style={{ position: 'absolute', top: '-40px', right: '0', borderRadius: '50%', width: '32px', height: '32px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+              className="btn-danger text-sm avatar-viewer-close"
             >
               <i className="fa-solid fa-times"></i>
             </button>
@@ -40,7 +38,7 @@ export default function AvatarViewer({ src, alt }: { src: string; alt: string })
             <img 
               src={src} 
               alt={alt} 
-              style={{ width: '100%', height: 'auto', maxHeight: '85vh', objectFit: 'contain', borderRadius: '12px' }} 
+              className="avatar-viewer-img" 
             />
           </div>
         </div>
