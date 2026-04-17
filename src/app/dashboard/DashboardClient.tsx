@@ -325,7 +325,7 @@ export default function DashboardClient({
                     onClick={() => bannerInputRef.current?.click()}
                   >
                     {bannerPreview && (
-                      <img src={bannerPreview} alt="Banner" className="image-picker-preview" style={{ objectFit: 'cover' }} />
+                      <img src={bannerPreview} alt="Banner" className="image-picker-preview image-cover" />
                     )}
                     {bannerPreview
                       ? <div className="bg-image-overlay"><i className="fa-solid fa-pencil"></i><span>Cambiar banner</span></div>
@@ -624,7 +624,7 @@ export default function DashboardClient({
                 </div>
                 {bookingMsg && <p className={bookingMsg.ok ? 'text-success' : 'text-error'}>{bookingMsg.text}</p>}
                 <div className="dashboard-actions-row flex-wrap-center mt-05rem">
-                  <button type="submit" className="btn-primary" disabled={isPending} style={{ flex: 1 }}>{isPending ? 'Guardando...' : 'Guardar Configuración'}</button>
+                  <button type="submit" className="btn-primary btn-flex-1" disabled={isPending}>{isPending ? 'Guardando...' : 'Guardar Configuración'}</button>
                   {user.bookingConfig && (
                     <button type="button" className="btn-danger" disabled={isPending} onClick={handleDeleteBookingConfig} title="Eliminar agenda">
                       <i className="fa-solid fa-trash mr-4px"></i> Eliminar Agenda

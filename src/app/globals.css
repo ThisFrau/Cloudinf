@@ -1149,8 +1149,8 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 0.25rem 0;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
   transition: opacity 0.2s ease;
 }
 .contact-form-header:hover { opacity: 0.8; }
@@ -1420,6 +1420,8 @@ body { top: 0 !important; }
 .justify-start { justify-content: flex-start; }
 .w-full { width: 100%; }
 .mt-05rem { margin-top: 0.5rem; }
+.image-cover { object-fit: cover; }
+.btn-flex-1 { flex: 1; }
 
 /* Avatar Viewer Modal */
 .avatar-viewer-overlay { z-index: 9999; display: flex; justify-content: center; align-items: center; background-color: rgba(0,0,0,0.85); }

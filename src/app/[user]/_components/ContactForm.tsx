@@ -39,7 +39,7 @@ export default function ContactForm({
         className="contact-form-header cursor-pointer justify-between flex-wrap-center"
         onClick={() => setIsOpen(!isOpen)}
         role="button"
-        aria-expanded={isOpen}
+        aria-expanded={isOpen ? 'true' : 'false'}
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && setIsOpen(!isOpen)}
       >
