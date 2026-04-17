@@ -18,6 +18,7 @@ export default function ContactForm({
 }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [isPending, setIsPending] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -33,8 +34,17 @@ export default function ContactForm({
 
   return (
     <section className="contact-form-section">
-      <h2 className="booking-public-title"><i className="fa-solid fa-envelope mr-8px"></i>Enviar un Mensaje</h2>
-      <form onSubmit={handleSubmit} className="booking-public-form">
+      <div 
+        className="booking-public-title flex-wrap-center" 
+        style={{ cursor: 'pointer', justifyContent: 'space-between', marginBottom: isOpen ? '1rem' : '0' }}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span><i className="fa-solid fa-envelope mr-8px"></i>Enviar un Mensaje</span>
+        <i className={`fa-solid fa-chevron-${isOpen ? 'up' : 'down'}`}></i>
+      </div>
+      
+      {isOpen && (
+        <form onSubmit={handleSubmit} className="booking-public-form">
         {askName && (
           <div className="input-group">
             <label htmlFor="cf-name">Tu Nombre</label>
@@ -63,7 +73,8 @@ export default function ContactForm({
         <button type="submit" className="btn-primary" disabled={isPending}>
           {isPending ? 'Enviando...' : 'Enviar Mensaje'}
         </button>
-      </form>
+        </form>
+      )}
     </section>
   )
 }
