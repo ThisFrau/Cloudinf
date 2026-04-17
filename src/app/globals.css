@@ -1311,3 +1311,4 @@ body { top: 0 !important; }
 .dashboard-actions-row { display: flex; flex-direction: row; gap: 0.5rem; align-items: center; }
 .btn-auto-width { width: auto !important; margin: 0 !important; }
 .form-inline { margin: 0; display: flex; }
+.contact-fields-wrapper { margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }

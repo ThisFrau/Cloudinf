@@ -402,7 +402,7 @@ export default function DashboardClient({
                   <label htmlFor="contactFormEnabled">Activar buzón de mensajes (Formulario de Contacto)</label>
                 </div>
                 {contactFormEnabled && (
-                  <div className="contact-fields-config mt-05rem" style={{ marginLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div className="contact-fields-config mt-05rem contact-fields-wrapper">
                     <small className="bio text-sm">¿Qué datos quieres pedirle al visitante?</small>
                     <div className="checkbox-row">
                       <input type="checkbox" id="contactFormAskName" name="contactFormAskName" defaultChecked={user.contactFormAskName} value="true" />
