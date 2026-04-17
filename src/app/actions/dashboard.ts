@@ -190,6 +190,18 @@ export async function saveBookingConfig(formData: FormData) {
   }
 }
 
+export async function deleteBookingConfig() {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado" }
+  try {
+    await prisma.bookingConfig.delete({ where: { userId: session.user.id } })
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch {
+    return { error: "No se encontró una agenda activa para eliminar." }
+  }
+}
+
 export async function updateBookingStatus(id: string, status: string) {
   const session = await auth()
   if (!session?.user?.id) return { error: "No autorizado" }

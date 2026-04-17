@@ -4,7 +4,7 @@ import { useState, useRef, useTransition, useEffect } from 'react'
 import {
   updateProfile, createLink, deleteLink,
   addCarouselPhoto, deleteCarouselPhoto,
-  saveBookingConfig, updateBookingStatus, deleteBooking,
+  saveBookingConfig, deleteBookingConfig, updateBookingStatus, deleteBooking,
   deleteContactMessage
 } from '@/app/actions/dashboard'
 import { PLATFORMS } from '@/lib/constants'
@@ -188,6 +188,12 @@ export default function DashboardClient({
   async function handleDeleteMessage(id: string) {
     if (confirm('¿Estás seguro de que deseas eliminar este mensaje?')) {
       startTransition(async () => { await deleteContactMessage(id) })
+    }
+  }
+
+  async function handleDeleteBookingConfig() {
+    if (confirm('¿Eliminar la agenda? Esto también borrará todas las reservas activas.')) {
+      startTransition(async () => { await deleteBookingConfig() })
     }
   }
 
@@ -617,7 +623,14 @@ export default function DashboardClient({
                   </select>
                 </div>
                 {bookingMsg && <p className={bookingMsg.ok ? 'text-success' : 'text-error'}>{bookingMsg.text}</p>}
-                <button type="submit" className="btn-primary" disabled={isPending}>{isPending ? 'Guardando...' : 'Guardar Configuración'}</button>
+                <div className="dashboard-actions-row flex-wrap-center mt-05rem">
+                  <button type="submit" className="btn-primary" disabled={isPending} style={{ flex: 1 }}>{isPending ? 'Guardando...' : 'Guardar Configuración'}</button>
+                  {user.bookingConfig && (
+                    <button type="button" className="btn-danger" disabled={isPending} onClick={handleDeleteBookingConfig} title="Eliminar agenda">
+                      <i className="fa-solid fa-trash mr-4px"></i> Eliminar Agenda
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
 
