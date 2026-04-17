@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
     request: NextRequest,
     context: { params: Promise<{ id: string }> } // Type adjusted for Next.js 15+ 
