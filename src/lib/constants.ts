@@ -1,0 +1,15 @@
+export const PLATFORMS: Record<string, { label: string; icon: string; color: string }> = {
+  whatsapp:  { label: "WhatsApp",      icon: "fa-brands fa-whatsapp",    color: "#25D366" },
+  instagram: { label: "Instagram",     icon: "fa-brands fa-instagram",   color: "#E1306C" },
+  tiktok:    { label: "TikTok",        icon: "fa-brands fa-tiktok",      color: "#010101" },
+  youtube:   { label: "YouTube",       icon: "fa-brands fa-youtube",     color: "#FF0000" },
+  twitter:   { label: "X / Twitter",   icon: "fa-brands fa-x-twitter",   color: "#1DA1F2" },
+  linkedin:  { label: "LinkedIn",      icon: "fa-brands fa-linkedin-in", color: "#0A66C2" },
+  telegram:  { label: "Telegram",      icon: "fa-brands fa-telegram",    color: "#2AABEE" },
+  spotify:   { label: "Spotify",       icon: "fa-brands fa-spotify",     color: "#1DB954" },
+  facebook:  { label: "Facebook",      icon: "fa-brands fa-facebook-f",  color: "#1877F2" },
+  github:    { label: "GitHub",        icon: "fa-brands fa-github",      color: "#ffffff" },
+  email:     { label: "Correo",        icon: "fa-regular fa-envelope",   color: "#EC4899" },
+  portfolio: { label: "Web / Portafolio", icon: "fa-solid fa-globe",    color: "#A855F7" },
+  other:     { label: "Otro",          icon: "fa-solid fa-link",         color: "#94A3B8" },
+}

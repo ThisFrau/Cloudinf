@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String           @id @default(cuid())
+  username           String?          @unique
+  email              String?          @unique
+  emailVerified      DateTime?
+  password           String?
+  name               String?
+  bio                String?
+  avatarUrl          String?
+  image              String?
+  buttonStyle        String           @default("default")
+  themeColor         String?
+  layoutStyle        String           @default("list")
+  vcardEnabled       Boolean          @default(false)
+  contactFormEnabled Boolean          @default(false)
+  seoTitle           String?
+  seoDescription     String?
+  bgType             String           @default("default")
+  bgColor            String?
+  bgGradient1        String?
+  bgGradient2        String?
+  bgGradientDir      String?
+  bgImageUrl         String?
+  translateEnabled   Boolean          @default(false)
+  spotifyProfileUrl  String?
+  carouselEnabled    Boolean          @default(false)
+  accounts           Account[]
+  links              Link[]
+  contactMessages    ContactMessage[]
+  carouselPhotos     CarouselPhoto[]
+  bookingConfig      BookingConfig?
+  createdAt          DateTime         @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Link {
+  id           String   @id @default(cuid())
+  title        String
+  url          String
+  icon         String?
+  platform     String
+  displayStyle String   @default("auto")
+  type         String   @default("link")
+  clicks       Int      @default(0)
+  order        Int      @default(0)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model CarouselPhoto {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  caption   String?
+  order     Int      @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model BookingConfig {
+  id            String    @id @default(cuid())
+  enabled       Boolean   @default(true)
+  title         String    @default("Reserva una reunion")
+  availableDays String    @default("[\"mon\",\"tue\",\"wed\",\"thu\",\"fri\"]")
+  startTime     String    @default("09:00")
+  endTime       String    @default("17:00")
+  slotDuration  Int       @default(60)
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+  createdAt     DateTime  @default(now())
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  date      String
+  time      String
+  note      String?
+  status    String        @default("pending")
+  configId  String
+  config    BookingConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+}
