@@ -192,15 +192,15 @@ export default function DashboardClient({
       {/* Header */}
       <div className="dashboard-header">
         <h1 className="name">Panel de {user.username}</h1>
-        <div className="dashboard-actions flex-wrap-center">
+        <div className="dashboard-actions flex-wrap-center" style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
           <button type="button" aria-label="Mostrar código QR" title="Mostrar código QR" onClick={() => setShowQR(true)} className="btn-secondary-sm">
             <i className="fa-solid fa-qrcode"></i>
           </button>
-          <Link href={`/${user.username}`} target="_blank" className="btn-primary text-none-pad">
+          <Link href={`/${user.username}`} target="_blank" className="btn-primary text-none-pad" style={{ width: 'auto', margin: 0 }}>
             Ver Perfil
           </Link>
-          <form action={signOutAction}>
-            <button type="submit" className="btn-danger">Salir</button>
+          <form action={signOutAction} style={{ margin: 0, display: 'flex' }}>
+            <button type="submit" className="btn-danger" style={{ width: 'auto', margin: 0 }}>Salir</button>
           </form>
         </div>
       </div>
