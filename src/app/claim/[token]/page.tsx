@@ -19,8 +19,8 @@ export default async function ClaimCardPage(
   if (!card) {
     return (
       <main className="container flex-center">
-        <div style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <h1 className="name text-error" style={{ fontSize: '2rem' }}>Tarjeta Inválida</h1>
+        <div className="text-center max-w-400 mx-auto">
+          <h1 className="name text-error text-2rem">Tarjeta Inválida</h1>
           <p className="bio mt-1rem">Lo sentimos, este chip NFC no parece estar registrado en nuestro sistema oficial.</p>
           <Link href="/" className="btn-secondary mt-1rem flex-auto">Volver al Inicio</Link>
         </div>
@@ -31,8 +31,8 @@ export default async function ClaimCardPage(
   if (card.status === 'claimed') {
     return (
       <main className="container flex-center">
-        <div style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <h1 className="name text-error" style={{ fontSize: '2rem' }}>Tarjeta Ocupada</h1>
+        <div className="text-center max-w-400 mx-auto">
+          <h1 className="name text-error text-2rem">Tarjeta Ocupada</h1>
           <p className="bio mt-1rem">Esta tarjeta ya fue reclamada y está vinculada a un perfil.</p>
           <Link href="/" className="btn-secondary mt-1rem flex-auto">Volver al Inicio</Link>
         </div>
@@ -55,11 +55,11 @@ export default async function ClaimCardPage(
 
     return (
       <main className="container flex-center">
-        <div style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#25D366' }}>
+        <div className="text-center max-w-400 mx-auto">
+          <div className="text-3rem mb-1rem text-success-color">
             <i className="fa-solid fa-circle-check"></i>
           </div>
-          <h1 className="name" style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>¡Tarjeta Vinculada!</h1>
+          <h1 className="name text-2-2rem mb-05rem">¡Tarjeta Vinculada!</h1>
           <p className="bio">Acabas de conectar exitosamente tu tarjeta física NFC a tu perfil de Cloudinf.</p>
           <p className="bio mt-05rem">Haz la prueba: acerca tu tarjeta a tu teléfono y verás la magia al instante.</p>
           
@@ -76,9 +76,9 @@ export default async function ClaimCardPage(
 
   return (
     <main className="container flex-center">
-      <div style={{ textAlign: 'center', maxWidth: '450px', background: 'rgba(0,0,0,0.4)', padding: '2.5rem 1.5rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="claim-card-container">
         
-        <div style={{ background: 'rgba(255,255,255,0.1)', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+        <div className="claim-card-icon">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -86,16 +86,16 @@ export default async function ClaimCardPage(
           </svg>
         </div>
 
-        <h1 className="name" style={{ fontSize: '2rem', marginBottom: '1rem', lineHeight: '1.2' }}>¡Enhorabuena!</h1>
-        <p className="bio" style={{ marginBottom: '1.5rem', fontSize: '1.05rem', color: 'var(--text-secondary)' }}>
+        <h1 className="name claim-card-title">¡Enhorabuena!</h1>
+        <p className="bio claim-card-subtitle">
           Tienes en tus manos una <strong>tarjeta inteligente Cloudinf</strong> sin abrir. Para darle vida y asociarla a ti, ingresa a tu cuenta o créate un perfil gratuito.
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <Link href={`/register?callbackUrl=${callbackUrl}`} className="btn-primary w-full" style={{ padding: '0.85rem' }}>
+        <div className="claim-buttons-wrapper">
+          <Link href={`/register?callbackUrl=${callbackUrl}`} className="btn-primary w-full p-085rem">
             Crear mi Perfil Gratis
           </Link>
-          <Link href={`/login?callbackUrl=${callbackUrl}`} className="btn-secondary w-full" style={{ padding: '0.85rem' }}>
+          <Link href={`/login?callbackUrl=${callbackUrl}`} className="btn-secondary w-full p-085rem">
             Ya tengo una cuenta
           </Link>
         </div>

@@ -1259,3 +1259,48 @@ body { top: 0 !important; }
   padding: 0 0.5rem;
 }
 
+/* ===== Component Classes ===== */
+.claim-card-container {
+  max-width: 450px;
+  background: rgba(0,0,0,0.4);
+  padding: 2.5rem 1.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.1);
+  margin: 0 auto;
+}
+.claim-card-icon {
+  background: rgba(255,255,255,0.1);
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+.claim-card-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+.claim-card-subtitle {
+  margin-bottom: 1.5rem;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+}
+.claim-buttons-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ===== Utility Classes ===== */
+.text-center { text-align: center; }
+.max-w-400 { max-width: 400px; margin-left: auto; margin-right: auto; }
+.text-2rem { font-size: 2rem; }
+.text-2-2rem { font-size: 2.2rem; }
+.text-3rem { font-size: 3rem; }
+.mb-05rem { margin-bottom: 0.5rem; }
+.mb-1rem { margin-bottom: 1rem; }
+.text-success-color { color: #25D366; }
+.p-085rem { padding: 0.85rem; }
