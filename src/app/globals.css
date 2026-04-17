@@ -1304,3 +1304,10 @@ body { top: 0 !important; }
 .mb-1rem { margin-bottom: 1rem; }
 .text-success-color { color: #25D366; }
 .p-085rem { padding: 0.85rem; }
+
+/* Inline Style Extractions */
+.hero-buttons-container { display: flex; gap: 1rem; width: 100%; }
+.hero-btn-item { flex: 1 1 140px; display: flex; justify-content: center; align-items: center; padding: 1rem; margin: 0; }
+.dashboard-actions-row { display: flex; flex-direction: row; gap: 0.5rem; align-items: center; }
+.btn-auto-width { width: auto !important; margin: 0 !important; }
+.form-inline { margin: 0; display: flex; }
