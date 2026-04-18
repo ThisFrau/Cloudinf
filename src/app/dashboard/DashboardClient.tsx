@@ -770,13 +770,13 @@ export default function DashboardClient({
                <h3 className="link-list-title mb-1rem">Vista Previa</h3>
                <p className="bio text-sm mb-1rem">Al activar "Mi Negocio", tu perfil resaltará inteligentemente a tus visitantes herramientas como el menú, mapa y wifi antes de los enlaces convencionales.</p>
                <div className="link-list mt-1rem">
-                 <div className="booking-card text-center opacity-80" style={{ border: '1px solid rgba(168,85,247,0.3)', pointerEvents: 'none' }}>
-                    <i className="fa-solid fa-utensils mb-05rem text-xl" style={{ color: "var(--color-portfolio)" }}></i>
+                 <div className="booking-card text-center opacity-80 biz-preview-menu">
+                    <i className="fa-solid fa-utensils mb-05rem text-xl biz-preview-utensils"></i>
                     <h4>Menú Digital</h4>
                     <p className="bio text-xs mt-05rem">Destacado automático con llamada a la acción</p>
                  </div>
-                 <div className="booking-card text-center opacity-80" style={{ border: '1px solid rgba(236,72,153,0.3)', pointerEvents: 'none' }}>
-                    <i className="fa-solid fa-wifi mb-05rem text-xl" style={{ color: "var(--color-email)" }}></i>
+                 <div className="booking-card text-center opacity-80 biz-preview-wifi">
+                    <i className="fa-solid fa-wifi mb-05rem text-xl biz-preview-wifi-icon"></i>
                     <h4>Fi-Wi a un toque</h4>
                     <p className="bio text-xs mt-05rem">Los visitantes podrán copiar clave fácilmente en la mesa</p>
                  </div>

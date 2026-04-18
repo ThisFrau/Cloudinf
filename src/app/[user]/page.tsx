@@ -170,7 +170,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
           <section className="business-profile-cards">
             {user.businessConfig.menuUrl && (
               <a href={user.businessConfig.menuUrl} target="_blank" rel="noopener noreferrer" className={`link-card business-card-highlighted ${buttonStyleClass}`}>
-                <div className="link-icon" style={{ background: 'var(--color-portfolio)' }}><i className="fa-solid fa-utensils text-white"></i></div>
+                <div className="link-icon business-menu-icon"><i className="fa-solid fa-utensils text-white"></i></div>
                 <div className="link-text-group">
                   <span className="link-text">Ver Menú Digital</span>
                   <span className="link-subtext">Haz click para abrir</span>
@@ -185,7 +185,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                   <i className="fa-solid fa-clock text-portfolio"></i>
                   <div className="info-text">
                     <strong>Horarios</strong>
-                    <p style={{ whiteSpace: 'pre-line' }}>{user.businessConfig.hours}</p>
+                    <p className="pre-line">{user.businessConfig.hours}</p>
                   </div>
                 </div>
               )}
@@ -201,7 +201,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
               )}
               {user.businessConfig.wifiName && (
                 <div className={`business-info-card copyable ${buttonStyleClass}`}>
-                  <i className="fa-solid fa-wifi" style={{ color: 'var(--color-email)' }}></i>
+                  <i className="fa-solid fa-wifi business-wifi-icon"></i>
                   <div className="info-text w-full">
                     <strong>Wi-Fi Gratis</strong>
                     <div className="flex-wrap-center justify-between mt-4px">
@@ -238,11 +238,11 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                       const emailStr = link.url.replace('mailto:', '').split('?')[0];
                       return (
                         <div key={link.id} className={`link-card email-link-card ${buttonStyleClass}`} data-platform={link.platform}>
-                          <div className="email-link-main" style={{ cursor: 'text' }}>
+                          <div className="email-link-main email-selectable">
                             <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
-                            <span className="link-text" style={{ userSelect: 'text' }}>{emailStr}</span>
+                            <span className="link-text email-text">{emailStr}</span>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px', zIndex: 2 }}>
+                          <div className="email-actions-row">
                             <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="copy-btn" title="Escribir correo">
                               <i className="fa-solid fa-paper-plane m-0"></i>
                             </a>
@@ -307,11 +307,11 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                   const emailStr = link.url.replace('mailto:', '').split('?')[0];
                   return (
                     <div key={link.id} className={`link-card email-link-card ${buttonStyleClass}`} data-platform={link.platform}>
-                      <div className="email-link-main" style={{ cursor: 'text' }}>
+                      <div className="email-link-main email-selectable">
                         <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
-                        <span className="link-text" style={{ userSelect: 'text' }}>{emailStr}</span>
+                        <span className="link-text email-text">{emailStr}</span>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', zIndex: 2 }}>
+                      <div className="email-actions-row">
                         <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="copy-btn" title="Escribir correo">
                           <i className="fa-solid fa-paper-plane m-0"></i>
                         </a>

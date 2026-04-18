@@ -494,8 +494,8 @@ a {
 .business-info-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     border-radius: 16px;
     padding: 1.25rem 1rem;
     display: flex;
@@ -540,6 +540,55 @@ a {
     padding: 0.3rem 0.6rem;
     font-size: 0.8rem;
     height: auto;
+}
+
+/* — Business icon colors — */
+.business-menu-icon {
+    background: var(--color-portfolio);
+}
+
+.business-wifi-icon {
+    color: var(--color-email);
+}
+
+/* — Business dashboard preview cards — */
+.biz-preview-menu {
+    border: 1px solid rgba(168,85,247,0.3);
+    pointer-events: none;
+}
+
+.biz-preview-utensils {
+    color: var(--color-portfolio);
+}
+
+.biz-preview-wifi {
+    border: 1px solid rgba(236,72,153,0.3);
+    pointer-events: none;
+}
+
+.biz-preview-wifi-icon {
+    color: var(--color-email);
+}
+
+/* — Email link card helpers — */
+.email-selectable {
+    cursor: text;
+}
+
+.email-text {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.email-actions-row {
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+/* — Misc helpers — */
+.pre-line {
+    white-space: pre-line;
 }
 
 /* =========================================
