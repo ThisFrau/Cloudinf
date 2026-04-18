@@ -180,11 +180,16 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                       const emailStr = link.url.replace('mailto:', '').split('?')[0];
                       return (
                         <div key={link.id} className={`link-card email-link-card ${buttonStyleClass}`} data-platform={link.platform}>
-                          <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="email-link-main">
+                          <div className="email-link-main" style={{ cursor: 'text' }}>
                             <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
-                            <span className="link-text">{emailStr}</span>
-                          </a>
-                          <CopyButton textToCopy={emailStr} />
+                            <span className="link-text" style={{ userSelect: 'text' }}>{emailStr}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', zIndex: 2 }}>
+                            <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="copy-btn" title="Escribir correo">
+                              <i className="fa-solid fa-paper-plane m-0"></i>
+                            </a>
+                            <CopyButton textToCopy={emailStr} />
+                          </div>
                         </div>
                       )
                     }
@@ -244,11 +249,16 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                   const emailStr = link.url.replace('mailto:', '').split('?')[0];
                   return (
                     <div key={link.id} className={`link-card email-link-card ${buttonStyleClass}`} data-platform={link.platform}>
-                      <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="email-link-main">
+                      <div className="email-link-main" style={{ cursor: 'text' }}>
                         <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
-                        <span className="link-text">{emailStr}</span>
-                      </a>
-                      <CopyButton textToCopy={emailStr} />
+                        <span className="link-text" style={{ userSelect: 'text' }}>{emailStr}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', zIndex: 2 }}>
+                        <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="copy-btn" title="Escribir correo">
+                          <i className="fa-solid fa-paper-plane m-0"></i>
+                        </a>
+                        <CopyButton textToCopy={emailStr} />
+                      </div>
                     </div>
                   );
                 }
