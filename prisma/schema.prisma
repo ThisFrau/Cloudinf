@@ -43,6 +43,7 @@ model User {
   contactMessages    ContactMessage[]
   carouselPhotos     CarouselPhoto[]
   bookingConfig      BookingConfig?
+  businessConfig     BusinessConfig?
   nfcCards           NfcCard[]
   createdAt          DateTime         @default(now())
 }
@@ -136,5 +137,23 @@ model NfcCard {
   userId    String?  // The user this card is bound to
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
+}
+
+model BusinessConfig {
+  id               String   @id @default(cuid())
+  enabled          Boolean  @default(false)
+  businessName     String?
+  type             String   @default("restaurant") // restaurant, bar, coffee, etc
+  address          String?
+  mapsUrl          String?
+  hours            String?  // Formato texto libre
+  phone            String?
+  menuUrl          String?
+  wifiName         String?
+  wifiPassword     String?
+  reservationsUrl  String?
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
 }
 

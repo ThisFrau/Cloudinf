@@ -54,6 +54,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
       links: { orderBy: { order: 'asc' } },
       carouselPhotos: { orderBy: { order: 'asc' } },
       bookingConfig: true,
+      businessConfig: true,
     }
   });
 
@@ -164,7 +165,64 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
           )}
         </header>
 
+        {/* ── Business Profile Layer ── */}
+        {user.businessConfig?.enabled && (
+          <section className="business-profile-cards">
+            {user.businessConfig.menuUrl && (
+              <a href={user.businessConfig.menuUrl} target="_blank" rel="noopener noreferrer" className={`link-card business-card-highlighted ${buttonStyleClass}`}>
+                <div className="link-icon" style={{ background: 'var(--color-portfolio)' }}><i className="fa-solid fa-utensils text-white"></i></div>
+                <div className="link-text-group">
+                  <span className="link-text">Ver Menú Digital</span>
+                  <span className="link-subtext">Haz click para abrir</span>
+                </div>
+                <i className="fa-solid fa-chevron-right arrow-icon"></i>
+              </a>
+            )}
 
+            <div className="business-details-grid">
+              {user.businessConfig.hours && (
+                <div className={`business-info-card ${buttonStyleClass}`}>
+                  <i className="fa-solid fa-clock text-portfolio"></i>
+                  <div className="info-text">
+                    <strong>Horarios</strong>
+                    <p style={{ whiteSpace: 'pre-line' }}>{user.businessConfig.hours}</p>
+                  </div>
+                </div>
+              )}
+              {user.businessConfig.address && (
+                <a href={user.businessConfig.mapsUrl || '#'} target={user.businessConfig.mapsUrl ? "_blank" : "_self"} className={`business-info-card ${user.businessConfig.mapsUrl ? 'clickable' : ''} ${buttonStyleClass}`}>
+                  <i className="fa-solid fa-map-location-dot text-twitter"></i>
+                  <div className="info-text">
+                    <strong>Ubicación</strong>
+                    <p>{user.businessConfig.address}</p>
+                    {user.businessConfig.mapsUrl && <small className="text-twitter opacity-80 mt-4px flex-wrap-center gap-4px"><i className="fa-solid fa-location-arrow"></i> Cómo llegar</small>}
+                  </div>
+                </a>
+              )}
+              {user.businessConfig.wifiName && (
+                <div className={`business-info-card copyable ${buttonStyleClass}`}>
+                  <i className="fa-solid fa-wifi" style={{ color: 'var(--color-email)' }}></i>
+                  <div className="info-text w-full">
+                    <strong>Wi-Fi Gratis</strong>
+                    <div className="flex-wrap-center justify-between mt-4px">
+                       <span>{user.businessConfig.wifiName}</span>
+                       <CopyButton textToCopy={user.businessConfig.wifiPassword || user.businessConfig.wifiName} className="btn-secondary-sm copy-wifi-btn" />
+                    </div>
+                  </div>
+                </div>
+              )}
+              {user.businessConfig.reservationsUrl && (
+                <a href={user.businessConfig.reservationsUrl} target="_blank" rel="noopener noreferrer" className={`business-info-card clickable ${buttonStyleClass}`}>
+                  <i className="fa-solid fa-bell-concierge text-instagram"></i>
+                  <div className="info-text">
+                    <strong>Reservas</strong>
+                    <p>Haz tu reserva online</p>
+                  </div>
+                </a>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* ── Links Section ── */}
         {user.layoutStyle === 'cards' ? (

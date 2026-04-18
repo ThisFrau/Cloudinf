@@ -291,3 +291,50 @@ export async function deleteContactMessage(id: string) {
     return { error: "Error al eliminar el mensaje." }
   }
 }
+
+// ─── Business Config ───────────────────────────────────────────────────────────
+export async function saveBusinessConfig(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado" }
+
+  const enabled         = formData.get("enabled") === "true"
+  const businessName    = (formData.get("businessName") as string) || null
+  const type            = (formData.get("type") as string) || "restaurant"
+  const address         = (formData.get("address") as string) || null
+  const mapsUrl         = (formData.get("mapsUrl") as string) || null
+  const hours           = (formData.get("hours") as string) || null
+  const phone           = (formData.get("phone") as string) || null
+  const menuUrl         = (formData.get("menuUrl") as string) || null
+  const wifiName        = (formData.get("wifiName") as string) || null
+  const wifiPassword    = (formData.get("wifiPassword") as string) || null
+  const reservationsUrl = (formData.get("reservationsUrl") as string) || null
+
+  try {
+    await prisma.businessConfig.upsert({
+      where: { userId: session.user.id },
+      create: {
+        enabled, businessName, type, address, mapsUrl, hours, phone, menuUrl, wifiName, wifiPassword, reservationsUrl,
+        userId: session.user.id,
+      },
+      update: {
+        enabled, businessName, type, address, mapsUrl, hours, phone, menuUrl, wifiName, wifiPassword, reservationsUrl,
+      },
+    })
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch {
+    return { error: "Error al guardar configuración de negocio." }
+  }
+}
+
+export async function deleteBusinessConfig() {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado" }
+  try {
+    await prisma.businessConfig.delete({ where: { userId: session.user.id } })
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch {
+    return { error: "No se encontró un negocio activo para eliminar." }
+  }
+}

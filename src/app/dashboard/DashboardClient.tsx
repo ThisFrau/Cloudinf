@@ -5,7 +5,7 @@ import {
   updateProfile, createLink, deleteLink, updateLink,
   addCarouselPhoto, deleteCarouselPhoto,
   saveBookingConfig, deleteBookingConfig, updateBookingStatus, deleteBooking,
-  deleteContactMessage
+  deleteContactMessage, saveBusinessConfig, deleteBusinessConfig
 } from '@/app/actions/dashboard'
 import { PLATFORMS } from '@/lib/constants'
 import Link from 'next/link'
@@ -15,6 +15,7 @@ type LinkType = { id: string; title: string; url: string; platform: string; icon
 type CarouselPhotoType = { id: string; imageUrl: string; caption: string | null; order: number }
 type BookingType = { id: string; name: string; email: string; date: string; time: string; note: string | null; status: string; createdAt: Date }
 type BookingConfigType = { id: string; title: string; availableDays: string; startTime: string; endTime: string; slotDuration: number }
+type BusinessConfigType = { id: string; enabled: boolean; businessName: string | null; type: string; address: string | null; mapsUrl: string | null; hours: string | null; phone: string | null; menuUrl: string | null; wifiName: string | null; wifiPassword: string | null; reservationsUrl: string | null; }
 type ContactMessageType = { id: string; name: string | null; email: string | null; phone: string | null; message: string | null; createdAt: Date }
 type UserType = {
   id: string; name: string | null; username: string | null; bio: string | null;
@@ -28,6 +29,7 @@ type UserType = {
   translateEnabled: boolean; spotifyProfileUrl: string | null; carouselEnabled: boolean;
   links: LinkType[]; carouselPhotos: CarouselPhotoType[];
   bookingConfig: BookingConfigType | null;
+  businessConfig: BusinessConfigType | null;
   contactMessages: ContactMessageType[];
 }
 
@@ -45,11 +47,12 @@ export default function DashboardClient({
   signOutAction: () => Promise<void>;
   bookings: BookingType[];
 }) {
-  const [activeTab, setActiveTab] = useState<'profile'|'links'|'gallery'|'booking'|'inbox'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile'|'links'|'business'|'gallery'|'booking'|'inbox'>('profile')
   const [avatarPreview, setAvatarPreview] = useState<string>(user.avatarUrl || user.image || '')
   const [profileMsg, setProfileMsg] = useState<{ ok?: boolean; text: string } | null>(null)
   const [linkMsg, setLinkMsg] = useState<{ ok?: boolean; text: string } | null>(null)
   const [galleryMsg, setGalleryMsg] = useState<{ ok?: boolean; text: string } | null>(null)
+  const [businessMsg, setBusinessMsg] = useState<{ ok?: boolean; text: string } | null>(null)
   const [bookingMsg, setBookingMsg] = useState<{ ok?: boolean; text: string } | null>(null)
   const [selectedPlatform, setSelectedPlatform] = useState('whatsapp')
   const [bgType, setBgType] = useState(user.bgType || 'default')
@@ -228,10 +231,27 @@ export default function DashboardClient({
     }
   }
 
+  async function handleSaveBusiness(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setBusinessMsg(null)
+    const fd = new FormData(e.currentTarget)
+    startTransition(async () => {
+      const result = await saveBusinessConfig(fd)
+      if (result?.error) setBusinessMsg({ ok: false, text: result.error })
+      else setBusinessMsg({ ok: true, text: '✅ Configuración guardada.' })
+    })
+  }
+
+  async function handleDeleteBusinessConfig() {
+    if (confirm('¿Desactivar y borrar la configuración de tu negocio?')) {
+      startTransition(async () => { await deleteBusinessConfig() })
+    }
+  }
+
   const currentPlatform = PLATFORMS[selectedPlatform] || PLATFORMS.other
   const tabs = [
     { id: 'profile', label: 'Mi Perfil', icon: 'fa-user' },
     { id: 'links', label: 'Mis Links', icon: 'fa-link' },
+    { id: 'business', label: 'Mi Negocio', icon: 'fa-store' },
     { id: 'booking', label: 'Agenda', icon: 'fa-calendar' },
     { id: 'inbox', label: 'Mensajes', icon: 'fa-envelope' },
   ] as const
@@ -664,7 +684,106 @@ export default function DashboardClient({
           </div>
         )}
 
+        {/* ══════════════ TAB: MI NEGOCIO ══════════════ */}
+        {activeTab === 'business' && (
+          <div className="dashboard-grid-2">
+            <div className="form-container">
+              <h2 className="mb-1rem">Datos del Negocio</h2>
+              <p className="bio mb-1rem">Configura este apartado para destacar tu bar, restaurante o local comercial en el perfil.</p>
+              <form onSubmit={handleSaveBusiness}>
+                <div className="checkbox-row mb-1rem">
+                  <input type="checkbox" id="business-enabled" name="enabled" defaultChecked={user.businessConfig?.enabled} value="true" />
+                  <label htmlFor="business-enabled"><strong>Activar apariencia de Negocio</strong></label>
+                </div>
 
+                <div className="input-group">
+                  <label htmlFor="businessName">Nombre del Local</label>
+                  <input id="businessName" name="businessName" type="text" defaultValue={user.businessConfig?.businessName || ''} placeholder="Ej. El Buen Sabor" />
+                </div>
+                
+                <div className="grid-2-cols">
+                  <div className="input-group">
+                    <label htmlFor="b-type">Rubro</label>
+                    <select id="b-type" name="type" className="platform-select text-black" defaultValue={user.businessConfig?.type || 'restaurant'}>
+                      <option value="restaurant">Restaurante</option>
+                      <option value="bar">Bar / Cervecería</option>
+                      <option value="cafe">Cafetería</option>
+                      <option value="store">Tienda</option>
+                      <option value="other">Otro</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="b-phone">Teléfono / WhatsApp</label>
+                    <input id="b-phone" name="phone" type="tel" defaultValue={user.businessConfig?.phone || ''} placeholder="+54 9 11..." />
+                  </div>
+                </div>
+
+                <div className="section-divider"><span>Menú & Reservas</span></div>
+                <div className="input-group">
+                  <label htmlFor="menuUrl">Link a tu Menú Digital (PDF o Web)</label>
+                  <input id="menuUrl" name="menuUrl" type="url" defaultValue={user.businessConfig?.menuUrl || ''} placeholder="https://..." />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="reservationsUrl">Link de Reservas Externo (Opcional si usas la Agenda nativa)</label>
+                  <input id="reservationsUrl" name="reservationsUrl" type="url" defaultValue={user.businessConfig?.reservationsUrl || ''} placeholder="https://app.com/reserva..." />
+                </div>
+
+                <div className="section-divider"><span>Ubicación y Horarios</span></div>
+                <div className="input-group">
+                  <label htmlFor="address">Dirección Pública</label>
+                  <input id="address" name="address" type="text" defaultValue={user.businessConfig?.address || ''} placeholder="Av. Corrientes 123, CABA" />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="mapsUrl">Link a Google Maps de la ubicación</label>
+                  <input id="mapsUrl" name="mapsUrl" type="url" defaultValue={user.businessConfig?.mapsUrl || ''} placeholder="https://maps.google.com/..." />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="hours">Días y Horarios de Atención</label>
+                  <textarea id="hours" name="hours" rows={3} defaultValue={user.businessConfig?.hours || ''} placeholder="Mar a Dom: 20:00 a 02:00hs&#10;Lunes cerrado." />
+                </div>
+
+                <div className="section-divider"><span>Wi-Fi Gratuito para Clientes</span></div>
+                <div className="grid-2-cols">
+                  <div className="input-group">
+                    <label htmlFor="wifiName">Red Wi-Fi</label>
+                    <input id="wifiName" name="wifiName" type="text" defaultValue={user.businessConfig?.wifiName || ''} placeholder="Local-Wifi" />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="wifiPassword">Contraseña</label>
+                    <input id="wifiPassword" name="wifiPassword" type="text" defaultValue={user.businessConfig?.wifiPassword || ''} placeholder="clave123" />
+                  </div>
+                </div>
+
+                {businessMsg && <p className={businessMsg.ok ? 'text-success' : 'text-error'}>{businessMsg.text}</p>}
+                <div className="dashboard-actions-row flex-wrap-center mt-1rem">
+                  <button type="submit" className="btn-primary btn-flex-1" disabled={isPending}>{isPending ? 'Guardando...' : 'Guardar Datos de Negocio'}</button>
+                  {user.businessConfig && (
+                    <button type="button" className="btn-danger" onClick={handleDeleteBusinessConfig} disabled={isPending} title="Borrar Negocio">
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+            
+            <div className="form-container">
+               <h3 className="link-list-title mb-1rem">Vista Previa</h3>
+               <p className="bio text-sm mb-1rem">Al activar "Mi Negocio", tu perfil resaltará inteligentemente a tus visitantes herramientas como el menú, mapa y wifi antes de los enlaces convencionales.</p>
+               <div className="link-list mt-1rem">
+                 <div className="booking-card text-center opacity-80" style={{ border: '1px solid rgba(168,85,247,0.3)', pointerEvents: 'none' }}>
+                    <i className="fa-solid fa-utensils mb-05rem text-xl" style={{ color: "var(--color-portfolio)" }}></i>
+                    <h4>Menú Digital</h4>
+                    <p className="bio text-xs mt-05rem">Destacado automático con llamada a la acción</p>
+                 </div>
+                 <div className="booking-card text-center opacity-80" style={{ border: '1px solid rgba(236,72,153,0.3)', pointerEvents: 'none' }}>
+                    <i className="fa-solid fa-wifi mb-05rem text-xl" style={{ color: "var(--color-email)" }}></i>
+                    <h4>Fi-Wi a un toque</h4>
+                    <p className="bio text-xs mt-05rem">Los visitantes podrán copiar clave fácilmente en la mesa</p>
+                 </div>
+               </div>
+            </div>
+          </div>
+        )}
 
         {/* ══════════════ TAB: AGENDA ══════════════ */}
         {activeTab === 'booking' && (
