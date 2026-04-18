@@ -2,7 +2,7 @@
 
 import { useState, useRef, useTransition, useEffect } from 'react'
 import {
-  updateProfile, createLink, deleteLink,
+  updateProfile, createLink, deleteLink, updateLink,
   addCarouselPhoto, deleteCarouselPhoto,
   saveBookingConfig, deleteBookingConfig, updateBookingStatus, deleteBooking,
   deleteContactMessage
@@ -57,6 +57,9 @@ export default function DashboardClient({
   const [contactFormEnabled, setContactFormEnabled] = useState(user.contactFormEnabled)
   const [isPending, startTransition] = useTransition()
   const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  // Link editing state
+  const [editingLink, setEditingLink] = useState<LinkType | null>(null)
 
   // Image upload state
   const [photoPreview, setPhotoPreview] = useState<string>('')
@@ -142,6 +145,34 @@ export default function DashboardClient({
       if (result?.error) setLinkMsg({ ok: false, text: result.error })
       else { setLinkMsg({ ok: true, text: '✅ Enlace añadido.' }); (e.target as HTMLFormElement).reset(); setSelectedPlatform('whatsapp') }
     })
+  }
+
+  async function handleUpdateLink(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setLinkMsg(null)
+    const fd = new FormData(e.currentTarget)
+    startTransition(async () => {
+      if (!editingLink) return
+      const result = await updateLink(editingLink.id, fd)
+      if (result?.error) setLinkMsg({ ok: false, text: result.error })
+      else { 
+        setLinkMsg({ ok: true, text: '✅ Enlace actualizado.' }); 
+        setEditingLink(null);
+        setSelectedPlatform('whatsapp');
+      }
+    })
+  }
+
+  function handleEditLink(link: LinkType) {
+    setEditingLink(link)
+    setSelectedPlatform(link.platform)
+    const container = document.querySelector('.add-link-form')
+    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  function cancelEditLink() {
+    setEditingLink(null)
+    setSelectedPlatform('whatsapp')
+    setLinkMsg(null)
   }
 
   async function handleDeleteLink(id: string) {
@@ -537,11 +568,11 @@ export default function DashboardClient({
         {activeTab === 'links' && (
           <div className="dashboard-grid-2">
             <div className="form-container">
-              <h2 className="mb-1rem">Añadir Enlace</h2>
-              <form onSubmit={handleAddLink} className="add-link-form">
+              <h2 className="mb-1rem">{editingLink ? "Editar Enlace" : "Añadir Enlace"}</h2>
+              <form onSubmit={editingLink ? handleUpdateLink : handleAddLink} className="add-link-form" key={editingLink ? editingLink.id : 'new-link'}>
                 <div className="input-group">
                   <label htmlFor="link-type">Tipo de elemento</label>
-                  <select id="link-type" name="type" aria-label="Tipo de elemento" title="Tipo de elemento" className="platform-select text-black" defaultValue="link">
+                  <select id="link-type" name="type" aria-label="Tipo de elemento" title="Tipo de elemento" className="platform-select text-black" defaultValue={editingLink ? editingLink.type : "link"}>
                     <option value="link">Enlace Normal</option>
                     <option value="header">Título / Separador</option>
                   </select>
@@ -562,6 +593,7 @@ export default function DashboardClient({
                 <div className="input-group">
                   <label htmlFor="title-link">Título del botón</label>
                   <input id="title-link" name="title" type="text"
+                    defaultValue={editingLink ? editingLink.title : ''}
                     placeholder={selectedPlatform === 'whatsapp' ? 'Ej. Escríbeme por WhatsApp' : 'Ej. Mi Canal de YouTube'}
                     required
                   />
@@ -569,13 +601,14 @@ export default function DashboardClient({
                 <div className="input-group">
                   <label htmlFor="url-link">URL de destino</label>
                   <input id="url-link" name="url" type="text"
+                    defaultValue={editingLink && editingLink.type !== 'header' ? editingLink.url : ''}
                     placeholder={selectedPlatform === 'whatsapp' ? 'https://wa.me/549...' : selectedPlatform === 'email' ? 'mailto:tu@email.com' : 'https://...'}
                     required
                   />
                 </div>
                 <div className="input-group">
                   <label htmlFor="displayStyle">Ver el enlace como</label>
-                  <select id="displayStyle" name="displayStyle" aria-label="Estilo de visualización" title="Estilo de visualización" className="platform-select text-black" defaultValue="auto">
+                  <select id="displayStyle" name="displayStyle" aria-label="Estilo de visualización" title="Estilo de visualización" className="platform-select text-black" defaultValue={editingLink ? editingLink.displayStyle : "auto"}>
                     <option value="auto">Automático</option>
                     <option value="button">Barra con Texto</option>
                     <option value="icon">Ícono (Solo logo)</option>
@@ -583,10 +616,17 @@ export default function DashboardClient({
                   </select>
                 </div>
                 {linkMsg && <p className={linkMsg.ok ? 'text-success' : 'text-error'}>{linkMsg.text}</p>}
-                <button type="submit" className="btn-primary btn-platform-submit" data-platform={selectedPlatform} disabled={isPending}>
-                  <i className={currentPlatform.icon + ' mr-8px'}></i>
-                  {isPending ? 'Añadiendo...' : `Añadir ${currentPlatform.label}`}
-                </button>
+                <div className="dashboard-actions-row flex-wrap-center mt-05rem">
+                  <button type="submit" className="btn-primary btn-flex-1 btn-platform-submit" data-platform={selectedPlatform} disabled={isPending}>
+                    <i className={currentPlatform.icon + ' mr-8px'}></i>
+                    {isPending ? 'Guardando...' : (editingLink ? 'Actualizar Enlace' : `Añadir ${currentPlatform.label}`)}
+                  </button>
+                  {editingLink && (
+                    <button type="button" className="btn-danger" onClick={cancelEditLink} disabled={isPending}>
+                      Cancelar
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
 
@@ -608,9 +648,14 @@ export default function DashboardClient({
                           {link.type !== 'header' && <span className="ml-8px text-xs"><i className="fa-solid fa-chart-simple mr-4px"></i>{link.clicks} clics</span>}
                         </small>
                       </div>
-                      <button type="button" className="btn-danger-sm" onClick={() => handleDeleteLink(link.id)} disabled={isPending} title="Eliminar">
-                        <i className="fa-solid fa-trash"></i>
-                      </button>
+                      <div className="dashboard-actions">
+                        <button type="button" className="btn-secondary-sm" onClick={() => handleEditLink(link)} disabled={isPending} title="Editar">
+                          <i className="fa-solid fa-pencil"></i>
+                        </button>
+                        <button type="button" className="btn-danger-sm" onClick={() => handleDeleteLink(link.id)} disabled={isPending} title="Eliminar">
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
                     </div>
                   )
                 })}

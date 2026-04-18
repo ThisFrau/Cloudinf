@@ -112,6 +112,37 @@ export async function deleteLink(id: string) {
   }
 }
 
+// ─── Update Link ───────────────────────────────────────────────────────────────
+export async function updateLink(id: string, formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado" }
+
+  const title    = formData.get("title") as string
+  const url      = formData.get("url") as string
+  const platform = (formData.get("platform") as string) || "other"
+  const displayStyle = (formData.get("displayStyle") as string) || "auto"
+  const type = (formData.get("type") as string) || "link"
+  const platformData = PLATFORMS[platform] || PLATFORMS.other
+
+  try {
+    await prisma.link.update({
+      where: { id, userId: session.user.id },
+      data: {
+        title,
+        url: type === 'header' ? '#' : url,
+        platform,
+        displayStyle,
+        type,
+        icon: platformData.icon,
+      },
+    })
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch {
+    return { error: "Error al actualizar link." }
+  }
+}
+
 // ─── Reorder Links ─────────────────────────────────────────────────────────────
 export async function reorderLinks(ids: string[]) {
   const session = await auth()
