@@ -408,6 +408,29 @@ a {
     background: rgba(var(--platform-rgb, 255, 255, 255), 0.2); 
 }
 
+.copy-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+
 /* =========================================
    FORMS & DASHBOARD
 ========================================= */

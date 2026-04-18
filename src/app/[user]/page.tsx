@@ -6,6 +6,7 @@ import BookingSection from "./_components/BookingSection";
 import ContactForm from "./_components/ContactForm";
 import LanguageSwitcher from "./_components/LanguageSwitcher";
 import AvatarViewer from "./_components/AvatarViewer";
+import CopyButton from "./_components/CopyButton";
 
 
 export async function generateMetadata(
@@ -174,6 +175,20 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                 <div className="swipe-card-links">
                   {card.links.map(link => {
                     const platform = PLATFORMS[link.platform] || PLATFORMS.other;
+                    
+                    if (link.platform === 'email') {
+                      const emailStr = link.url.replace('mailto:', '').split('?')[0];
+                      return (
+                        <div key={link.id} className={`link-card ${buttonStyleClass}`} style={{ padding: '0.4rem 1rem' }} data-platform={link.platform}>
+                          <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', flex: 1, color: 'inherit', textDecoration: 'none' }}>
+                            <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
+                            <span className="link-text">{emailStr}</span>
+                          </a>
+                          <CopyButton textToCopy={emailStr} />
+                        </div>
+                      )
+                    }
+
                     return (
                       <a key={link.id} href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer"
                         className={`link-card ${buttonStyleClass}`} data-platform={link.platform}>
@@ -223,6 +238,19 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                       </div>
                     );
                   }
+                }
+
+                if (link.platform === 'email') {
+                  const emailStr = link.url.replace('mailto:', '').split('?')[0];
+                  return (
+                    <div key={link.id} className={`link-card ${buttonStyleClass}`} style={{ padding: '0.4rem 1rem' }} data-platform={link.platform}>
+                      <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', flex: 1, color: 'inherit', textDecoration: 'none' }}>
+                        <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
+                        <span className="link-text">{emailStr}</span>
+                      </a>
+                      <CopyButton textToCopy={emailStr} />
+                    </div>
+                  );
                 }
 
                 return (
