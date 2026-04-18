@@ -430,6 +430,19 @@ a {
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
+.email-link-card {
+    padding: 0.4rem 1rem !important;
+}
+
+.email-link-main {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    color: inherit;
+    text-decoration: none;
+}
+
+
 
 /* =========================================
    FORMS & DASHBOARD

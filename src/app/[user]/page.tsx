@@ -179,8 +179,8 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                     if (link.platform === 'email') {
                       const emailStr = link.url.replace('mailto:', '').split('?')[0];
                       return (
-                        <div key={link.id} className={`link-card ${buttonStyleClass}`} style={{ padding: '0.4rem 1rem' }} data-platform={link.platform}>
-                          <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', flex: 1, color: 'inherit', textDecoration: 'none' }}>
+                        <div key={link.id} className={`link-card email-link-card ${buttonStyleClass}`} data-platform={link.platform}>
+                          <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="email-link-main">
                             <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
                             <span className="link-text">{emailStr}</span>
                           </a>
@@ -243,8 +243,8 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                 if (link.platform === 'email') {
                   const emailStr = link.url.replace('mailto:', '').split('?')[0];
                   return (
-                    <div key={link.id} className={`link-card ${buttonStyleClass}`} style={{ padding: '0.4rem 1rem' }} data-platform={link.platform}>
-                      <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', flex: 1, color: 'inherit', textDecoration: 'none' }}>
+                    <div key={link.id} className={`link-card email-link-card ${buttonStyleClass}`} data-platform={link.platform}>
+                      <a href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer" className="email-link-main">
                         <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
                         <span className="link-text">{emailStr}</span>
                       </a>
