@@ -39,7 +39,6 @@ export default function ContactForm({
         type="button"
         className="contact-form-header cursor-pointer justify-between flex-wrap-center w-full"
         onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
       >
         <span><i className="fa-solid fa-envelope mr-8px"></i>Enviar un Mensaje</span>
         <i className={`fa-solid fa-chevron-down contact-form-chevron ${isOpen ? 'contact-form-chevron-open' : ''}`}></i>
