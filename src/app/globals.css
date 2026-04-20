@@ -479,16 +479,10 @@ a {
 }
 
 .business-details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
     width: 100%;
-}
-
-@media (max-width: 480px) {
-    .business-details-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 .business-info-card {
@@ -536,12 +530,6 @@ a {
     margin: 0;
 }
 
-.copy-wifi-btn {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
-    height: auto;
-}
-
 /* — Business icon colors — */
 .business-menu-icon {
     background: var(--color-portfolio);
@@ -549,6 +537,191 @@ a {
 
 .business-wifi-icon {
     color: var(--color-email);
+}
+
+/* =========================================
+   WI-FI CARD
+========================================= */
+.wifi-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.wifi-card-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+.wifi-info {
+    flex: 1;
+    gap: 0.35rem;
+}
+
+.wifi-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.wifi-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.wifi-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    min-width: 4.5rem;
+    flex-shrink: 0;
+}
+
+.wifi-value {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    flex: 1;
+    word-break: break-all;
+}
+
+.wifi-password {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.06em;
+}
+
+.wifi-password-row {
+    margin-top: 0.15rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.copy-wifi-inline {
+    width: 30px !important;
+    height: 30px !important;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   LOCATION CARD (COLLAPSIBLE)
+========================================= */
+.location-card {
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    width: 100%;
+    align-items: stretch;
+}
+
+.location-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    width: 100%;
+    padding: 1.25rem 1rem;
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+.location-card-header:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.location-card-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.location-card-summary {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    text-align: left;
+}
+
+.location-card-summary strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.location-card-summary p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.location-card-chevron {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.location-card-chevron.rotated {
+    transform: rotate(180deg);
+}
+
+.location-card-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.location-card-body.open {
+    grid-template-rows: 1fr;
+}
+
+.location-card-body > * {
+    overflow: hidden;
+}
+
+/* inner wrapper to handle overflow */
+.location-map-wrapper {
+    overflow: hidden;
+    border-radius: 0;
+    line-height: 0;
+}
+
+.location-map-wrapper iframe,
+.location-map-iframe {
+    display: block;
+    width: 100%;
+    height: 200px;
+    border: 0;
+}
+
+.location-directions-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(99,179,237,0.15));
+    border-top: 1px solid rgba(59, 130, 246, 0.25);
+    color: #60a5fa;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.25s, color 0.25s;
+}
+
+.location-directions-btn:hover {
+    background: linear-gradient(135deg, rgba(59,130,246,0.45), rgba(99,179,237,0.3));
+    color: #93c5fd;
 }
 
 /* — Business dashboard preview cards — */
@@ -576,8 +749,8 @@ a {
 }
 
 .email-text {
-    user-select: text;
     -webkit-user-select: text;
+    user-select: text;
 }
 
 .email-actions-row {

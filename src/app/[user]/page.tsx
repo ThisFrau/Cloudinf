@@ -7,6 +7,7 @@ import ContactForm from "./_components/ContactForm";
 import LanguageSwitcher from "./_components/LanguageSwitcher";
 import AvatarViewer from "./_components/AvatarViewer";
 import CopyButton from "./_components/CopyButton";
+import LocationCard from "./_components/LocationCard";
 
 
 export async function generateMetadata(
@@ -190,24 +191,31 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                 </div>
               )}
               {user.businessConfig.address && (
-                <a href={user.businessConfig.mapsUrl || '#'} target={user.businessConfig.mapsUrl ? "_blank" : "_self"} className={`business-info-card ${user.businessConfig.mapsUrl ? 'clickable' : ''} ${buttonStyleClass}`}>
-                  <i className="fa-solid fa-map-location-dot text-twitter"></i>
-                  <div className="info-text">
-                    <strong>Ubicación</strong>
-                    <p>{user.businessConfig.address}</p>
-                    {user.businessConfig.mapsUrl && <small className="text-twitter opacity-80 mt-4px flex-wrap-center gap-4px"><i className="fa-solid fa-location-arrow"></i> Cómo llegar</small>}
-                  </div>
-                </a>
+                <LocationCard
+                  address={user.businessConfig.address}
+                  mapsUrl={user.businessConfig.mapsUrl}
+                  buttonStyleClass={buttonStyleClass}
+                />
               )}
               {user.businessConfig.wifiName && (
-                <div className={`business-info-card copyable ${buttonStyleClass}`}>
-                  <i className="fa-solid fa-wifi business-wifi-icon"></i>
-                  <div className="info-text w-full">
-                    <strong>Wi-Fi Gratis</strong>
-                    <div className="flex-wrap-center justify-between mt-4px">
-                       <span>{user.businessConfig.wifiName}</span>
-                       <CopyButton textToCopy={user.businessConfig.wifiPassword || user.businessConfig.wifiName} className="btn-secondary-sm copy-wifi-btn" />
+                <div className={`business-info-card wifi-card ${buttonStyleClass}`}>
+                  <i className="fa-solid fa-wifi business-wifi-icon wifi-card-icon"></i>
+                  <div className="info-text wifi-info">
+                    <strong className="wifi-title">Wi-Fi Gratis</strong>
+                    <div className="wifi-row">
+                      <span className="wifi-label">Red</span>
+                      <span className="wifi-value">{user.businessConfig.wifiName}</span>
                     </div>
+                    {user.businessConfig.wifiPassword && (
+                      <div className="wifi-row wifi-password-row">
+                        <span className="wifi-label">Contraseña</span>
+                        <span className="wifi-value wifi-password">{user.businessConfig.wifiPassword}</span>
+                        <CopyButton textToCopy={user.businessConfig.wifiPassword} className="copy-btn copy-wifi-inline" />
+                      </div>
+                    )}
+                    {!user.businessConfig.wifiPassword && (
+                      <CopyButton textToCopy={user.businessConfig.wifiName} className="copy-btn copy-wifi-inline" />
+                    )}
                   </div>
                 </div>
               )}
