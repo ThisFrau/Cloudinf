@@ -12,6 +12,7 @@ import {
   saveQuoteForm, deleteQuoteSubmission,
   generateReferralCode, generateAgencyToken, revokeAgencyToken,
 } from '@/app/actions/dashboard'
+import { updatePassword, updateEmail, updateUsername, deleteAccount } from '@/app/actions/auth'
 import { PLATFORMS } from '@/lib/constants'
 import Link from 'next/link'
 import HoursBuilder from './_components/HoursBuilder'
@@ -78,15 +79,20 @@ function StatBar({ pct }: { pct: number }) {
 }
 
 export default function DashboardClient({
-  user, signOutAction, bookings, stats, scanLogs,
+  user, signOutAction, bookings, stats, scanLogs, accountMeta,
 }: {
   user: UserType;
   signOutAction: () => Promise<void>;
   bookings: BookingType[];
   stats: StatsType;
   scanLogs: ScanLogType[];
+  accountMeta: { hasPassword: boolean; isOAuth: boolean; createdAt: Date };
 }) {
-  const [activeTab, setActiveTab] = useState<'profile'|'links'|'business'|'booking'|'inbox'|'stats'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile'|'links'|'business'|'booking'|'inbox'|'stats'|'cuenta'>('profile')
+  const [passwordMsg, setPasswordMsg] = useState<{ ok?: boolean; text: string } | null>(null)
+  const [emailMsg, setEmailMsg] = useState<{ ok?: boolean; text: string } | null>(null)
+  const [usernameMsg, setUsernameMsg] = useState<{ ok?: boolean; text: string } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
   const [showPreview, setShowPreview] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string>(user.avatarUrl || user.image || '')
   const [profileMsg, setProfileMsg] = useState<{ ok?: boolean; text: string } | null>(null)
@@ -338,6 +344,9 @@ export default function DashboardClient({
           </button>
           <button type="button" aria-label="Vista previa del perfil" title="Vista previa del perfil" onClick={() => setShowPreview(true)} className="btn-secondary-sm">
             <i className="fa-solid fa-mobile-screen"></i>
+          </button>
+          <button type="button" aria-label="Mi Cuenta" title="Mi Cuenta" onClick={() => setActiveTab('cuenta')} className="btn-secondary-sm">
+            <i className="fa-solid fa-circle-user"></i>
           </button>
           <Link href="/tienda" className="btn-store btn-auto-width" title="Ir a la Tienda NFC">
             <i className="fa-solid fa-store"></i>
@@ -1229,6 +1238,162 @@ export default function DashboardClient({
                 </div>
               )
             }
+          </div>
+        )}
+
+        {/* ══════════════ TAB: MI CUENTA ══════════════ */}
+        {activeTab === 'cuenta' && (
+          <div>
+
+            {/* ── Info de cuenta ── */}
+            <div className="form-container mb-1rem">
+              <h2 className="mb-1rem">Mi Cuenta</h2>
+
+              <div className="account-hero">
+                <div className="account-avatar">
+                  {(user.name || user.username || '?')[0].toUpperCase()}
+                </div>
+                <div className="account-hero-info">
+                  <p className="account-hero-name">{user.name || user.username}</p>
+                  <p className="account-hero-email">{user.email}</p>
+                </div>
+              </div>
+
+              <div className="account-info-grid">
+                <div className="account-info-item">
+                  <div className="account-info-label">Correo electrónico</div>
+                  <div className="account-info-value">{user.email || '—'}</div>
+                </div>
+                <div className="account-info-item">
+                  <div className="account-info-label">Miembro desde</div>
+                  <div className="account-info-value">
+                    {new Date(accountMeta.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Cambiar email ── */}
+            <div className="form-container mb-1rem">
+              <h2 className="mb-05rem">Cambiar correo</h2>
+              <form onSubmit={async e => {
+                e.preventDefault(); setEmailMsg(null)
+                const fd = new FormData(e.currentTarget)
+                startTransition(async () => {
+                  const r = await updateEmail(fd)
+                  if (r?.error) setEmailMsg({ ok: false, text: r.error })
+                  else { setEmailMsg({ ok: true, text: '✅ Correo actualizado.' }); (e.target as HTMLFormElement).reset() }
+                })
+              }}>
+                <div className="input-group">
+                  <label htmlFor="new-email">Nuevo correo electrónico</label>
+                  <input id="new-email" name="email" type="email" placeholder="nuevo@correo.com" required />
+                </div>
+                {emailMsg && <p className={emailMsg.ok ? 'text-success' : 'text-error'}>{emailMsg.text}</p>}
+                <button type="submit" className="btn-primary w-full" disabled={isPending}>Guardar correo</button>
+              </form>
+            </div>
+
+            {/* ── Cambiar username ── */}
+            <div className="form-container mb-1rem">
+              <h2 className="mb-05rem">Cambiar username</h2>
+              <p className="bio mb-1rem">Solo letras minúsculas, números y guión bajo. Mínimo 3 caracteres.</p>
+              <form onSubmit={async e => {
+                e.preventDefault(); setUsernameMsg(null)
+                const fd = new FormData(e.currentTarget)
+                startTransition(async () => {
+                  const r = await updateUsername(fd)
+                  if (r?.error) setUsernameMsg({ ok: false, text: r.error })
+                  else { setUsernameMsg({ ok: true, text: '✅ Username actualizado.' }); (e.target as HTMLFormElement).reset() }
+                })
+              }}>
+                <div className="input-group">
+                  <label htmlFor="new-username">Nuevo username</label>
+                  <input id="new-username" name="username" type="text" defaultValue={user.username || ''} placeholder="ej. juanperez" required />
+                </div>
+                {usernameMsg && <p className={usernameMsg.ok ? 'text-success' : 'text-error'}>{usernameMsg.text}</p>}
+                <button type="submit" className="btn-primary w-full" disabled={isPending}>Guardar username</button>
+              </form>
+            </div>
+
+            {/* ── Cambiar contraseña ── */}
+            {accountMeta.hasPassword && (
+              <div className="form-container mb-1rem">
+                <h2 className="mb-05rem">Cambiar contraseña</h2>
+                <p className="bio mb-1rem">Mínimo 8 caracteres, con al menos una letra, un número y un carácter especial.</p>
+                <form onSubmit={async e => {
+                  e.preventDefault(); setPasswordMsg(null)
+                  const fd = new FormData(e.currentTarget)
+                  startTransition(async () => {
+                    const r = await updatePassword(fd)
+                    if (r?.error) setPasswordMsg({ ok: false, text: r.error })
+                    else { setPasswordMsg({ ok: true, text: '✅ Contraseña actualizada.' }); (e.target as HTMLFormElement).reset() }
+                  })
+                }}>
+                  <div className="input-group">
+                    <label htmlFor="currentPassword">Contraseña actual</label>
+                    <input id="currentPassword" name="currentPassword" type="password" placeholder="••••••••" required />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="newPassword">Nueva contraseña</label>
+                    <input id="newPassword" name="newPassword" type="password" placeholder="••••••••" required />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="confirm">Confirmar nueva contraseña</label>
+                    <input id="confirm" name="confirm" type="password" placeholder="••••••••" required />
+                  </div>
+                  {passwordMsg && <p className={passwordMsg.ok ? 'text-success' : 'text-error'}>{passwordMsg.text}</p>}
+                  <button type="submit" className="btn-primary w-full" disabled={isPending}>Cambiar contraseña</button>
+                </form>
+              </div>
+            )}
+
+            {/* ── Exportar datos ── */}
+            <div className="form-container mb-1rem">
+              <h2 className="mb-05rem">Exportar mis datos</h2>
+              <p className="bio mb-1rem">Descargá un archivo JSON con tu perfil, links y mensajes recibidos.</p>
+              <button
+                type="button"
+                className="btn-primary w-full"
+                onClick={() => {
+                  const data = {
+                    exportadoEl: new Date().toISOString(),
+                    perfil: { nombre: user.name, username: user.username, bio: user.bio, email: user.email },
+                    links: user.links.map(l => ({ titulo: l.title, url: l.url, plataforma: l.platform, clicks: l.clicks })),
+                    mensajes: user.contactMessages.map(m => ({ nombre: m.name, email: m.email, telefono: m.phone, mensaje: m.message, fecha: m.createdAt })),
+                  }
+                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+                  const a = document.createElement('a')
+                  a.href = URL.createObjectURL(blob)
+                  a.download = `cloudinf-${user.username}-datos.json`
+                  a.click()
+                  URL.revokeObjectURL(a.href)
+                }}
+              >
+                <i className="fa-solid fa-download mr-4px"></i>
+                Descargar mis datos
+              </button>
+            </div>
+
+            {/* ── Eliminar cuenta ── */}
+            <div className="form-container mb-1rem">
+              <h2 className="mb-05rem">Eliminar cuenta</h2>
+              <p className="bio mb-1rem">Esta acción es irreversible. Se borrarán tu perfil, links, mensajes y todos tus datos.</p>
+              <div className="input-group mb-1rem">
+                <label>Escribí <strong style={{color:'#fff'}}>ELIMINAR</strong> para confirmar</label>
+                <input type="text" value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="ELIMINAR" />
+              </div>
+              <button
+                type="button"
+                className="btn-danger w-full"
+                disabled={deleteConfirm !== 'ELIMINAR' || isPending}
+                onClick={() => startTransition(async () => { await deleteAccount() })}
+              >
+                <i className="fa-solid fa-trash mr-4px"></i>
+                Eliminar mi cuenta permanentemente
+              </button>
+            </div>
+
           </div>
         )}
 

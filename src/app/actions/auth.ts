@@ -49,6 +49,72 @@ export async function logoutUser() {
   await signOut({ redirectTo: "/login" })
 }
 
+export async function updateEmail(formData: FormData) {
+  const { auth } = await import("@/auth")
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado." }
+
+  const email = (formData.get("email") as string)?.toLowerCase().trim()
+  if (!email || !email.includes("@")) return { error: "Ingresá un correo válido." }
+
+  const existing = await prisma.user.findUnique({ where: { email } })
+  if (existing && existing.id !== session.user.id) return { error: "Ese correo ya está en uso." }
+
+  await prisma.user.update({ where: { id: session.user.id }, data: { email } })
+  return { success: true }
+}
+
+export async function updateUsername(formData: FormData) {
+  const { auth } = await import("@/auth")
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado." }
+
+  const username = (formData.get("username") as string)?.toLowerCase().trim().replace(/[^a-z0-9_]/g, "")
+  if (!username || username.length < 3) return { error: "El username debe tener al menos 3 caracteres." }
+  if (username.length > 30) return { error: "No puede tener más de 30 caracteres." }
+
+  const existing = await prisma.user.findUnique({ where: { username } })
+  if (existing && existing.id !== session.user.id) return { error: "Ese username ya está en uso." }
+
+  await prisma.user.update({ where: { id: session.user.id }, data: { username } })
+  return { success: true }
+}
+
+export async function updatePassword(formData: FormData) {
+  const { auth } = await import("@/auth")
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado." }
+
+  const current = formData.get("currentPassword") as string
+  const next = formData.get("newPassword") as string
+  const confirm = formData.get("confirm") as string
+
+  if (!current || !next || !confirm) return { error: "Todos los campos son obligatorios." }
+  if (next.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." }
+  if (!(/[a-zA-Z]/.test(next) && /[0-9]/.test(next) && /[^a-zA-Z0-9]/.test(next)))
+    return { error: "Debe contener al menos una letra, un número y un carácter especial." }
+  if (next !== confirm) return { error: "Las contraseñas no coinciden." }
+
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { password: true } })
+  if (!user?.password) return { error: "Tu cuenta usa Google. No podés cambiar la contraseña desde acá." }
+
+  const valid = await bcrypt.compare(current, user.password)
+  if (!valid) return { error: "La contraseña actual es incorrecta." }
+
+  const hashed = await bcrypt.hash(next, 10)
+  await prisma.user.update({ where: { id: session.user.id }, data: { password: hashed } })
+  return { success: true }
+}
+
+export async function deleteAccount() {
+  const { auth, signOut } = await import("@/auth")
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado." }
+
+  await prisma.user.delete({ where: { id: session.user.id } })
+  await signOut({ redirectTo: "/" })
+}
+
 export async function claimCardWithSetup(token: string, formData: FormData) {
   const { auth } = await import("@/auth")
   const session = await auth()

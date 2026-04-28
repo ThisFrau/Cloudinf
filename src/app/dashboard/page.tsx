@@ -19,8 +19,12 @@ export default async function DashboardPage() {
       teamMembers: { orderBy: { order: 'asc' } },
       quoteForm: { include: { submissions: { orderBy: { createdAt: 'desc' }, take: 50 } } },
       referrals: { orderBy: { createdAt: 'desc' } },
+      accounts: { select: { provider: true } },
     },
   })
+
+  const hasPassword = !!user?.password
+  const isOAuth = (user?.accounts ?? []).some(a => a.provider !== 'credentials')
 
   const bookings = user?.bookingConfig
     ? await prisma.booking.findMany({
@@ -60,6 +64,7 @@ export default async function DashboardPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       scanLogs={scanLogs as any}
       stats={{ profileViews, totalClicks, bookingsThisWeek, messagesThisMonth }}
+      accountMeta={{ hasPassword, isOAuth, createdAt: user?.createdAt ?? new Date() }}
     />
   )
 }
