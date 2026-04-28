@@ -20,6 +20,14 @@ export async function GET(
         return new Response("Link not found", { status: 404 });
     }
 
-    // Redirect to the actual url
+    try {
+        const parsed = new URL(link.url);
+        if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) {
+            return new Response("Invalid URL", { status: 400 });
+        }
+    } catch {
+        return new Response("Invalid URL", { status: 400 });
+    }
+
     redirect(link.url);
 }

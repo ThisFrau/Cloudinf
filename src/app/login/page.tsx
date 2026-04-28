@@ -9,9 +9,11 @@ import { Suspense } from "react"
 function LoginForm() {
   const [error, setError] = useState("")
   const [isPending, startTransition] = useTransition()
+  const [showPassword, setShowPassword] = useState(false)
   const searchParams = useSearchParams()
   const registered = searchParams.get("registered")
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+  const rawCallback = searchParams.get("callbackUrl") || ""
+  const callbackUrl = rawCallback.startsWith("/") && !rawCallback.startsWith("//") ? rawCallback : "/dashboard"
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -70,7 +72,22 @@ function LoginForm() {
           </div>
           <div className="input-group">
             <label htmlFor="password">Contraseña</label>
-            <input id="password" name="password" type="password" required />
+            <div className="input-password-wrapper">
+              <input id="password" name="password" type={showPassword ? "text" : "password"} required />
+              <button
+                type="button"
+                className="input-password-toggle"
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                <i className={showPassword ? "fa-solid fa-eye-slash" : "fa-solid fa-eye"} />
+              </button>
+            </div>
+          </div>
+
+          <div className="checkbox-row remember-me-row">
+            <input type="checkbox" id="remember" name="remember" defaultChecked />
+            <label htmlFor="remember">Recordar en este dispositivo</label>
           </div>
           <button type="submit" className="btn-primary" disabled={isPending}>
             {isPending ? "Entrando..." : "Entrar"}

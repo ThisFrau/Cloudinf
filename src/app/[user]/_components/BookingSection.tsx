@@ -45,7 +45,6 @@ export default function BookingSection({ username, title }: { username: string; 
 
   useEffect(() => {
     if (!selectedDate || !config) return
-    setBookedSlots([])
     fetch(`/api/booking/${username}?date=${selectedDate}`)
       .then(r => r.json())
       .then(data => setBookedSlots(data.bookedSlots || []))

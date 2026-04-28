@@ -14,8 +14,10 @@ export async function registerUser(formData: FormData) {
     return { error: "Todos los campos son obligatorios." }
   if (!email.includes("@"))
     return { error: "Ingresa un correo electrónico válido." }
-  if (password.length < 6)
-    return { error: "La contraseña debe tener al menos 6 caracteres." }
+  if (password.length < 8)
+    return { error: "La contraseña debe tener al menos 8 caracteres." }
+  if (!(/[a-zA-Z]/.test(password) && /[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password)))
+    return { error: "La contraseña debe contener al menos una letra, un número y un carácter especial." }
   if (password !== confirm)
     return { error: "Las contraseñas no coinciden." }
 
@@ -37,7 +39,7 @@ export async function registerUser(formData: FormData) {
   redirect(`/login?registered=1&callbackUrl=${encodeURIComponent(callbackUrl)}`)
 }
 
-export async function loginUser(_: FormData) {
+export async function loginUser() {
   // El login con credenciales se maneja desde el cliente con signIn("credentials")
   return {}
 }
@@ -45,4 +47,43 @@ export async function loginUser(_: FormData) {
 export async function logoutUser() {
   const { signOut } = await import("@/auth")
   await signOut({ redirectTo: "/login" })
+}
+
+export async function claimCardWithSetup(token: string, formData: FormData) {
+  const { auth } = await import("@/auth")
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado" }
+
+  const card = await prisma.nfcCard.findUnique({ where: { token: token.toUpperCase() } })
+  if (!card) return { error: "Tarjeta inválida" }
+  if (card.status === 'claimed' && card.userId !== session.user.id) return { error: "Tarjeta ya reclamada" }
+
+  const name = (formData.get("name") as string)?.trim() || null
+  const businessName = (formData.get("businessName") as string)?.trim() || null
+  const phone = (formData.get("phone") as string)?.trim() || null
+  const rawType = (formData.get("type") as string) || "restaurant"
+  const VALID_TYPES = ["restaurant", "bar", "cafe", "store", "other"]
+  const type = VALID_TYPES.includes(rawType) ? rawType : "restaurant"
+
+  await prisma.$transaction(async (tx) => {
+    await tx.nfcCard.update({
+      where: { token: token.toUpperCase() },
+      data: { status: 'claimed', userId: session.user!.id },
+    })
+
+    if (name) {
+      await tx.user.update({ where: { id: session.user!.id }, data: { name } })
+    }
+
+    if (businessName || phone) {
+      const uid = session.user!.id as string
+      await tx.businessConfig.upsert({
+        where: { userId: uid },
+        create: { enabled: true, businessName, phone, type, userId: uid },
+        update: { enabled: true, ...(businessName ? { businessName } : {}), ...(phone ? { phone } : {}), type },
+      })
+    }
+  })
+
+  return { success: true }
 }

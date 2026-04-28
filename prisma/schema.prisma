@@ -3,7 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -17,6 +19,8 @@ model User {
   avatarUrl          String?
   image              String?
   buttonStyle        String           @default("default")
+  socialIconShape    String           @default("rounded")
+  socialIconWidth    String           @default("normal")
   themeColor         String?
   layoutStyle           String           @default("list")
   avatarAlign           String           @default("center")
@@ -38,6 +42,41 @@ model User {
   translateEnabled   Boolean          @default(false)
   spotifyProfileUrl  String?
   carouselEnabled    Boolean          @default(false)
+  profileViews       Int              @default(0)
+
+  // ── Estado temporal (Plus) ────────────────────────────────
+  statusText         String?
+  statusEmoji        String?
+  statusExpiresAt    DateTime?
+
+  // ── PDF / Catálogo descargable (Plus) ─────────────────────
+  pdfCatalogUrl      String?
+  pdfCatalogLabel    String?
+
+  // ── Fuera de horario (Plus) ───────────────────────────────
+  outOfOfficeEnabled Boolean          @default(false)
+  outOfOfficeMsg     String?
+
+  // ── AFIP / Facturación (Plus) ─────────────────────────────
+  cuit               String?
+  afipUrl            String?
+
+  // ── Instagram (Plus/Premium) ──────────────────────────────
+  instagramHandle    String?
+  instagramFeedEnabled Boolean        @default(false)
+
+  // ── QR Dinámico (Premium) ────────────────────────────────
+  qrDynamicUrl       String?
+
+  // ── Equipo (Premium) ─────────────────────────────────────
+  teamEnabled        Boolean          @default(false)
+
+  // ── Referidos (Plus) ─────────────────────────────────────
+  referralCode       String?          @unique
+
+  // ── Dashboard de agencia (Premium) ───────────────────────
+  agencyToken        String?          @unique
+
   accounts           Account[]
   links              Link[]
   contactMessages    ContactMessage[]
@@ -45,6 +84,11 @@ model User {
   bookingConfig      BookingConfig?
   businessConfig     BusinessConfig?
   nfcCards           NfcCard[]
+  scanLogs           ScanLog[]
+  quoteForm          QuoteForm?
+  campaign           Campaign?
+  teamMembers        TeamMember[]
+  referrals          Referral[]
   createdAt          DateTime         @default(now())
 }
 
@@ -75,6 +119,7 @@ model Link {
   platform     String
   displayStyle String   @default("auto")
   type         String   @default("link")
+  customImage  String?
   clicks       Int      @default(0)
   order        Int      @default(0)
   userId       String
@@ -155,5 +200,76 @@ model BusinessConfig {
   userId           String   @unique
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt        DateTime @default(now())
+}
+
+// ── Historial de escaneos (Premium) ───────────────────────────────────────────
+model ScanLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    String?  // "direct" | "qr" | "nfc"
+  device    String?  // "mobile" | "desktop"
+  createdAt DateTime @default(now())
+}
+
+// ── Formulario de presupuesto (Plus) ──────────────────────────────────────────
+model QuoteForm {
+  id          String            @id @default(cuid())
+  enabled     Boolean           @default(false)
+  title       String            @default("Pedí un presupuesto")
+  description String?
+  fields      String            @default("[]")
+  userId      String            @unique
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissions QuoteSubmission[]
+  createdAt   DateTime          @default(now())
+}
+
+model QuoteSubmission {
+  id        String    @id @default(cuid())
+  formId    String
+  form      QuoteForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data      String
+  name      String?
+  email     String?
+  createdAt DateTime  @default(now())
+}
+
+// ── Modo campaña (Premium) ────────────────────────────────────────────────────
+model Campaign {
+  id        String    @id @default(cuid())
+  enabled   Boolean   @default(false)
+  title     String?
+  message   String?
+  ctaLabel  String?
+  ctaUrl    String?
+  bannerUrl String?
+  endsAt    DateTime?
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+// ── Perfiles de equipo (Premium) ──────────────────────────────────────────────
+model TeamMember {
+  id         String   @id @default(cuid())
+  name       String
+  role       String?
+  avatarUrl  String?
+  profileUrl String?
+  order      Int      @default(0)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+// ── Programa de referidos (Plus) ──────────────────────────────────────────────
+model Referral {
+  id            String   @id @default(cuid())
+  referrerId    String
+  referrer      User     @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  referredEmail String
+  status        String   @default("pending") // pending | completed
+  createdAt     DateTime @default(now())
 }
 

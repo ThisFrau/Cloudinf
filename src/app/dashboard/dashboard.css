@@ -1,0 +1,551 @@
+/* ============================================================
+   DASHBOARD VISUAL ENHANCEMENTS
+   Layered on top of globals.css — never conflicts, only adds.
+============================================================ */
+
+/* === AMBIENT BACKGROUND GLOW === */
+.max-w-1000 {
+  position: relative;
+}
+.max-w-1000::before {
+  content: '';
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(ellipse at 50% 30%,
+    rgba(168, 85, 247, 0.07) 0%,
+    rgba(236, 72, 153, 0.04) 40%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* === DASHBOARD HEADER === */
+.dashboard-header {
+  padding: 0.5rem 0 1.25rem;
+}
+
+.dashboard-header h1.name {
+  background: linear-gradient(120deg, #ffffff 20%, #c084fc 55%, #f472b6 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* === ENHANCED FORM CONTAINERS === */
+.form-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient top accent bar */
+.form-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(168, 85, 247, 0.8),
+    rgba(236, 72, 153, 0.8),
+    transparent
+  );
+  border-radius: 0 0 4px 4px;
+  pointer-events: none;
+}
+
+/* Subtle inner glow */
+.form-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 20px 20px 0 0;
+}
+
+/* === FORM CONTAINER HEADINGS === */
+.form-container h2 {
+  background: linear-gradient(120deg, #ffffff 30%, #e2b8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+}
+
+.form-container h3.link-list-title {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+}
+
+/* === INPUT GROUP — LABEL IMPROVEMENTS === */
+.input-group label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.73rem !important;
+  font-weight: 700 !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+.input-group label::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #A855F7, #EC4899);
+  flex-shrink: 0;
+}
+
+/* === INPUTS — STRONGER FOCUS STATE === */
+.input-group input:focus,
+.input-group textarea:focus {
+  border-color: rgba(168, 85, 247, 0.6) !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  box-shadow:
+    0 0 0 3px rgba(168, 85, 247, 0.14),
+    0 0 0 1px rgba(168, 85, 247, 0.45),
+    inset 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+}
+
+.input-group input:hover:not(:focus),
+.input-group textarea:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(0, 0, 0, 0.32) !important;
+}
+
+/* === SECTION DIVIDERS === */
+.section-divider {
+  margin: 2rem 0 1.25rem !important;
+}
+
+.section-divider span {
+  background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 0.68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+}
+
+.section-divider::before,
+.section-divider::after {
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.35), transparent) !important;
+  height: 1px !important;
+}
+
+/* === STAT CARDS — PER-METRIC COLOR === */
+/* Views → sky blue */
+.stats-grid .stat-card:nth-child(1) {
+  --sc: #38bdf8;
+  --sc-rgb: 56, 189, 248;
+}
+/* Clicks → purple */
+.stats-grid .stat-card:nth-child(2) {
+  --sc: #c084fc;
+  --sc-rgb: 192, 132, 252;
+}
+/* Bookings → emerald */
+.stats-grid .stat-card:nth-child(3) {
+  --sc: #4ade80;
+  --sc-rgb: 74, 222, 128;
+}
+/* Messages → amber */
+.stats-grid .stat-card:nth-child(4) {
+  --sc: #fb923c;
+  --sc-rgb: 251, 146, 60;
+}
+
+.stats-grid .stat-card .stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: rgba(var(--sc-rgb, 168, 85, 247), 0.12);
+  border: 1px solid rgba(var(--sc-rgb, 168, 85, 247), 0.25);
+  color: var(--sc, #A855F7) !important;
+  font-size: 1.25rem;
+  filter: none !important;
+  margin-bottom: 6px;
+  transition: transform 0.25s, background 0.25s;
+}
+
+.stats-grid .stat-card:hover .stat-icon {
+  background: rgba(var(--sc-rgb, 168, 85, 247), 0.2);
+  transform: scale(1.08);
+}
+
+.stats-grid .stat-card:hover {
+  border-color: rgba(var(--sc-rgb, 168, 85, 247), 0.35) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 40px rgba(var(--sc-rgb, 168, 85, 247), 0.14) !important;
+}
+
+/* === QR MODE PICKER === */
+.qr-mode-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.qr-mode-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.85rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.qr-mode-option i {
+  font-size: 1.1rem;
+}
+
+.qr-mode-option:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: rgba(168, 85, 247, 0.07);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.qr-mode-option.qr-mode-selected {
+  border-color: rgba(168, 85, 247, 0.55);
+  background: rgba(168, 85, 247, 0.13);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.18);
+}
+
+.stats-grid .stat-card .stat-value {
+  font-size: 2rem !important;
+  background: linear-gradient(135deg, #ffffff 40%, var(--sc, #A855F7) 140%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* === BOOKING CARDS — STATUS LEFT BORDER === */
+.booking-card:has(.booking-pending) {
+  border-left: 3px solid rgba(251, 191, 36, 0.8);
+  padding-left: calc(1.1rem - 2px);
+}
+.booking-card:has(.booking-confirmed) {
+  border-left: 3px solid rgba(74, 222, 128, 0.8);
+  padding-left: calc(1.1rem - 2px);
+}
+.booking-card:has(.booking-cancelled) {
+  border-left: 3px solid rgba(239, 68, 68, 0.7);
+  padding-left: calc(1.1rem - 2px);
+}
+
+/* === LINK ITEMS — ACCENT HOVER === */
+.link-item-dashboard {
+  transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s !important;
+}
+
+.link-item-dashboard:hover {
+  background: rgba(168, 85, 247, 0.06) !important;
+  border-color: rgba(168, 85, 247, 0.28) !important;
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  transform: translateX(4px) !important;
+}
+
+/* === DASHBOARD TABS — ACTIVE STATE POLISH === */
+.tab-btn {
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+.tab-active-marker {
+  letter-spacing: 0.01em;
+}
+
+/* Individual tab icon accent colors when active */
+.tab-active-marker.tab-profile   { --tab-ic: #c084fc; }
+.tab-active-marker.tab-links     { --tab-ic: #60a5fa; }
+.tab-active-marker.tab-business  { --tab-ic: #4ade80; }
+.tab-active-marker.tab-booking   { --tab-ic: #fb923c; }
+.tab-active-marker.tab-inbox     { --tab-ic: #f472b6; }
+.tab-active-marker.tab-stats     { --tab-ic: #22d3ee; }
+
+/* === AVATAR UPLOAD — RING ON HOVER === */
+.avatar-upload-preview {
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.0);
+  transition: box-shadow 0.3s, transform 0.3s !important;
+}
+.avatar-upload-preview:hover {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.5), 0 8px 24px rgba(168, 85, 247, 0.25) !important;
+  transform: scale(1.03) !important;
+}
+
+/* === BIZ PREVIEW CARDS === */
+.biz-preview-menu {
+  border-color: rgba(251, 146, 60, 0.25) !important;
+}
+.biz-preview-utensils {
+  color: #fb923c;
+  filter: drop-shadow(0 0 8px rgba(251,146,60,0.4));
+}
+.biz-preview-wifi {
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+.biz-preview-wifi-icon {
+  color: #38bdf8;
+  filter: drop-shadow(0 0 8px rgba(56,189,248,0.4));
+}
+
+/* === DAY BUTTONS — HOVER GLOW === */
+.day-btn:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), 0 0 8px rgba(168, 85, 247, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.22) !important;
+}
+
+/* === PREVIEW MODAL FRAME === */
+.preview-modal {
+  width: min(520px, 95vw) !important;
+  padding: 1.25rem !important;
+}
+.preview-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.preview-phone-frame {
+  width: 100%;
+  height: 70vh;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0a0a0f;
+}
+.preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* === CHECKBOX ROWS — BETTER CONTRAST === */
+.checkbox-row {
+  gap: 10px;
+  padding: 4px 0;
+}
+.checkbox-row:hover label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+input[type="checkbox"]:checked + label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* === PLATFORM SELECT DROPDOWN === */
+.platform-select {
+  transition: border-color 0.2s !important;
+}
+.platform-select:focus {
+  border-color: rgba(168, 85, 247, 0.5) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12) !important;
+}
+
+/* === SHAPE PREVIEW BOX === */
+.shape-preview-box {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shape-preview-icons {
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* === SUCCESS / ERROR MESSAGES === */
+.text-success {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4ade80;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.6rem 0.9rem;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+.text-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #f87171;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.6rem 0.9rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+/* === MODAL — FADE + SLIDE IN === */
+@keyframes db-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes db-modal-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.modal-overlay {
+  animation: db-overlay-in 0.22s ease both;
+}
+
+.modal-content {
+  animation: db-modal-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* === TAB CONTENT — FADE IN ON SWITCH === */
+@keyframes db-tab-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.dashboard-tab-content > * {
+  animation: db-tab-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* === STAT BAR (dynamic width via CSS custom property) === */
+/* width comes from --stat-w set inline; avoids raw inline style warning */
+.stat-bar {
+  width: var(--stat-w, 0%);
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.7), rgba(236, 72, 153, 0.5));
+  min-width: 2px;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* === SCAN LOG CARD === */
+.scan-log-card {
+  padding: 0.6rem 1rem;
+}
+
+/* === IMAGE PICKERS — COMPACT HEIGHTS === */
+.bg-image-picker-sm {
+  height: 80px;
+}
+
+.bg-image-picker-xs {
+  height: 70px;
+}
+
+/* Custom image picker for link buttons */
+.link-custom-img-picker {
+  height: 80px;
+  cursor: pointer;
+}
+
+/* Image preview inside picker: cover + rounded */
+.image-picker-preview-cover {
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Team avatar preview: circular */
+.image-picker-preview-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* === TEAM MEMBER ICON — PURPLE TINT === */
+.team-member-list-icon {
+  background: rgba(168, 85, 247, 0.15) !important;
+}
+
+/* === READ-ONLY INPUTS (referral code, agency token) === */
+.input-readonly {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: inherit;
+}
+
+.input-readonly-code {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: inherit;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.input-readonly-sm {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: inherit;
+  font-size: 0.85rem;
+}
+
+/* === NEW FIELD INPUT (quote form) === */
+.input-inline-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: inherit;
+}
+
+/* === REFERRAL LINK HIGHLIGHT === */
+.referral-link-text {
+  color: #a855f7;
+  font-weight: 600;
+}
+
+/* === RESPONSIVE TWEAKS === */
+@media (max-width: 600px) {
+  .dashboard-header h1.name {
+    font-size: 1.25rem;
+  }
+  .stats-grid .stat-card .stat-value {
+    font-size: 1.6rem !important;
+  }
+  .stats-grid .stat-card .stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+  }
+}

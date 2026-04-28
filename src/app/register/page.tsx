@@ -11,8 +11,11 @@ import { Suspense } from "react"
 function RegisterForm() {
   const [error, setError] = useState("")
   const [isPending, startTransition] = useTransition()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+  const rawCallback = searchParams.get("callbackUrl") || ""
+  const callbackUrl = rawCallback.startsWith("/") && !rawCallback.startsWith("//") ? rawCallback : "/dashboard"
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -21,6 +24,16 @@ function RegisterForm() {
     formData.append("callbackUrl", callbackUrl)
     const password = formData.get("password") as string
     const confirm = formData.get("confirm") as string
+    
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres.")
+      return
+    }
+    if (!(/[a-zA-Z]/.test(password) && /[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password))) {
+      setError("La contraseña debe contener al menos una letra, un número y un carácter especial.")
+      return
+    }
+
     if (password !== confirm) {
       setError("Las contraseñas no coinciden.")
       return
@@ -65,11 +78,31 @@ function RegisterForm() {
           </div>
           <div className="input-group">
             <label htmlFor="password">Contraseña</label>
-            <input id="password" name="password" type="password" required minLength={6} placeholder="Mínimo 6 caracteres" />
+            <div className="input-password-wrapper">
+              <input id="password" name="password" type={showPassword ? "text" : "password"} required minLength={8} placeholder="8+ caracteres, letra, número y especial" />
+              <button
+                type="button"
+                className="input-password-toggle"
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                <i className={showPassword ? "fa-solid fa-eye-slash" : "fa-solid fa-eye"} />
+              </button>
+            </div>
           </div>
           <div className="input-group">
             <label htmlFor="confirm">Confirmar contraseña</label>
-            <input id="confirm" name="confirm" type="password" required minLength={6} placeholder="Repite tu contraseña" />
+            <div className="input-password-wrapper">
+              <input id="confirm" name="confirm" type={showConfirm ? "text" : "password"} required minLength={8} placeholder="Repite tu contraseña" />
+              <button
+                type="button"
+                className="input-password-toggle"
+                onClick={() => setShowConfirm(v => !v)}
+                aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                <i className={showConfirm ? "fa-solid fa-eye-slash" : "fa-solid fa-eye"} />
+              </button>
+            </div>
           </div>
           <button type="submit" className="btn-primary" disabled={isPending}>
             {isPending ? "Creando cuenta..." : "Crear cuenta"}

@@ -62,6 +62,10 @@ export default function LanguageSwitcher() {
 declare global {
   interface Window {
     googleTranslateElementInit: () => void;
-    google: any;
+    google: {
+      translate: {
+        TranslateElement: new (config: { pageLanguage: string; includedLanguages?: string; autoDisplay?: boolean }, id: string) => void
+      }
+    };
   }
 }

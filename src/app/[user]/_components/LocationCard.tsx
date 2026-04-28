@@ -9,14 +9,24 @@ interface Props {
 }
 
 /**
- * Builds an embeddable Google Maps iframe src from an address or a maps URL.
- * Uses the free Maps embed API (no key needed for basic iframe embeds).
+ * Builds an embeddable Google Maps iframe src.
+ * Prefers extracting a query from a provided mapsUrl; falls back to address.
+ * Requires frame-src to include https://maps.google.com in CSP.
  */
 function buildEmbedUrl(address: string, mapsUrl?: string | null): string {
-  // If there's a mapsUrl that already is a Google Maps link, try to extract place info
-  // Otherwise just use address search
-  const query = encodeURIComponent(address)
-  return `https://maps.google.com/maps?q=${query}&output=embed&z=15&hl=es`
+  // If the user saved a Google Maps URL try to reuse its query string
+  if (mapsUrl) {
+    try {
+      const url = new URL(mapsUrl)
+      const q = url.searchParams.get('q')
+      if (q) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed&z=15&hl=es`
+      }
+    } catch {
+      // fall through to address-based embed
+    }
+  }
+  return `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed&z=15&hl=es`
 }
 
 export default function LocationCard({ address, mapsUrl, buttonStyleClass = '' }: Props) {
@@ -30,8 +40,7 @@ export default function LocationCard({ address, mapsUrl, buttonStyleClass = '' }
         type="button"
         className="location-card-header"
         onClick={() => setOpen(o => !o)}
-        aria-expanded={open ? 'true' : 'false'}
-        aria-label="Ver ubicación en mapa"
+        aria-label="Desplegar o cerrar ubicación en mapa"
       >
         <i className="fa-solid fa-map-location-dot text-twitter location-card-icon" />
         <div className="location-card-summary">
@@ -49,7 +58,7 @@ export default function LocationCard({ address, mapsUrl, buttonStyleClass = '' }
               title="Mapa de ubicación"
               src={embedUrl}
               width="100%"
-              height="200"
+              height="220"
               className="location-map-iframe"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

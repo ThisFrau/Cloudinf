@@ -4,8 +4,10 @@ import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import authConfig from "./auth.config"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
@@ -37,7 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 days
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -50,7 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string
-        ;(session.user as any).username = token.username
+        ;(session.user as { username?: string | null }).username = token.username as string | null
       }
       return session
     },
@@ -70,9 +72,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true
     },
-  },
-  pages: {
-    signIn: "/login",
-    error: "/login",
   },
 })

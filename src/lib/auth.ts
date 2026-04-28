@@ -1,10 +1,10 @@
-import { jwtVerify, SignJWT } from "jose";
+import { jwtVerify, SignJWT, type JWTPayload } from "jose";
 import { cookies } from "next/headers";
 
 const secretKey = "super-premium-secret-key-cloudinf";
 const key = new TextEncoder().encode(secretKey);
 
-export async function encrypt(payload: any) {
+export async function encrypt(payload: Record<string, unknown>) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -12,11 +12,11 @@ export async function encrypt(payload: any) {
     .sign(key);
 }
 
-export async function decrypt(token: string): Promise<any> {
+export async function decrypt(token: string): Promise<JWTPayload | null> {
     try {
         const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
         return payload;
-    } catch (e) {
+    } catch {
         return null;
     }
 }

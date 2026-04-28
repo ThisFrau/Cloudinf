@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/ratelimit";
+import { sendBookingReceivedEmail, sendNewBookingNotification } from "@/lib/email";
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +47,12 @@ export async function POST(
     context: { params: Promise<{ user: string }> }
 ) {
     const { user: username } = await context.params;
+
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+    if (!rateLimit(`booking:${ip}`, 5, 10 * 60 * 1000)) {
+        return NextResponse.json({ error: "Demasiadas solicitudes. Intentá de nuevo en unos minutos." }, { status: 429 });
+    }
+
     const body = await request.json();
     const { name, email, date, time, note } = body;
 
@@ -52,12 +60,26 @@ export async function POST(
         return NextResponse.json({ error: "Faltan campos" }, { status: 400 });
     }
 
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    if (!emailRegex.test(email)) {
+        return NextResponse.json({ error: "Email inválido" }, { status: 400 });
+    }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    const timeRegex = /^\d{2}:\d{2}$/
+    if (!dateRegex.test(date) || !timeRegex.test(time)) {
+        return NextResponse.json({ error: "Formato de fecha u hora inválido" }, { status: 400 });
+    }
+
     const user = await prisma.user.findUnique({
         where: { username: decodeURIComponent(username).toLowerCase() },
-        include: { bookingConfig: true },
+        include: {
+            bookingConfig: true,
+            businessConfig: { select: { businessName: true } },
+        },
     });
 
-    if (!user?.bookingConfig) {
+    if (!user?.bookingConfig || !user.bookingConfig.enabled) {
         return NextResponse.json({ error: "Sin agenda" }, { status: 404 });
     }
 
@@ -85,6 +107,21 @@ export async function POST(
             configId: user.bookingConfig.id,
         },
     });
+
+    const businessName = user.businessConfig?.businessName || user.name || 'Cloudinf'
+
+    sendBookingReceivedEmail({ to: email, name, date, time, businessName }).catch(() => null)
+
+    if (user.email) {
+      sendNewBookingNotification({
+        ownerEmail: user.email,
+        guestName: name,
+        guestEmail: email,
+        date, time,
+        note: note || null,
+        businessName,
+      }).catch(() => null)
+    }
 
     return NextResponse.json({ success: true, booking });
 }

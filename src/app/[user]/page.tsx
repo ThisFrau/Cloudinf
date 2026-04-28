@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { PLATFORMS } from "@/lib/constants";
 import type { Metadata } from 'next'
@@ -8,14 +9,17 @@ import LanguageSwitcher from "./_components/LanguageSwitcher";
 import AvatarViewer from "./_components/AvatarViewer";
 import CopyButton from "./_components/CopyButton";
 import LocationCard from "./_components/LocationCard";
-
+import MenuButton from "./_components/MenuButton";
+import ViewTracker from "./_components/ViewTracker";
+import OpenNowBadge from "./_components/OpenNowBadge";
+import QuoteSection from "./_components/QuoteSection";
 
 export async function generateMetadata(
   { params }: { params: Promise<{ user: string }> }
 ): Promise<Metadata> {
   const p = await params
   const username = decodeURIComponent(p.user).toLowerCase()
-  const user = await prisma.user.findUnique({ where: { username } })
+  const user = await getPublicUser(username)
   if (!user) return { title: 'Perfil No Encontrado' }
   return {
     title: user.seoTitle || user.name || user.username,
@@ -28,51 +32,83 @@ export async function generateMetadata(
   }
 }
 
-const SOCIAL_LOGOS = [
+// Set para búsquedas O(1) en vez de O(n) por cada link
+const SOCIAL_LOGOS = new Set([
   "whatsapp", "instagram", "tiktok", "youtube",
   "twitter", "linkedin", "telegram", "facebook",
-  "github", "email", "spotify"
-];
+  "github", "email", "spotify",
+]);
 
-import React from 'react';
-
-function buildBackground(user: { bgType: string; bgColor: string | null; bgGradient1: string | null; bgGradient2: string | null; bgGradientDir: string | null; bgImageUrl: string | null }): React.CSSProperties {
-  if (user.bgType === 'solid' && user.bgColor) return { backgroundColor: user.bgColor };
-  if (user.bgType === 'gradient' && user.bgGradient1 && user.bgGradient2)
-    return { background: `linear-gradient(${user.bgGradientDir || '135deg'}, ${user.bgGradient1}, ${user.bgGradient2})` };
-  if (user.bgType === 'image' && user.bgImageUrl)
-    return { backgroundImage: `url('${user.bgImageUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(3px) brightness(0.9)', transform: 'scale(1.02)' };
-  return {};
-}
-
-export default async function PublicProfile({ params }: { params: Promise<{ user: string }> }) {
-  const p = await params;
-  const username = decodeURIComponent(p.user).toLowerCase();
-
-  const user = await prisma.user.findUnique({
+// cache() deduplica la query: generateMetadata y PublicProfile
+// comparten el mismo resultado sin hacer dos viajes a la BD.
+const getPublicUser = cache(async (username: string) => {
+  return prisma.user.findUnique({
     where: { username },
     include: {
       links: { orderBy: { order: 'asc' } },
       carouselPhotos: { orderBy: { order: 'asc' } },
       bookingConfig: true,
       businessConfig: true,
-    }
-  });
+      campaign: true,
+      teamMembers: { orderBy: { order: 'asc' } },
+      quoteForm: true,
+    },
+  })
+})
+
+import React from 'react';
+
+function sanitizeColor(color: string | null | undefined): string | null {
+  if (!color) return null;
+  if (/^#[0-9A-Fa-f]{3,8}$/.test(color)) return color;
+  if (/^[a-zA-Z]{2,30}$/.test(color)) return color;
+  return null;
+}
+
+function sanitizeCssDir(dir: string | null | undefined): string {
+  if (!dir) return '135deg';
+  if (/^\d{1,3}deg$/.test(dir)) return dir;
+  if (/^to (right|left|top|bottom|top right|top left|bottom right|bottom left)$/.test(dir)) return dir;
+  return '135deg';
+}
+
+function sanitizeImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return url;
+  } catch {}
+  return null;
+}
+
+export default async function PublicProfile({ params }: { params: Promise<{ user: string }> }) {
+  const p = await params;
+  const username = decodeURIComponent(p.user).toLowerCase();
+
+  const user = await getPublicUser(username);
 
   if (!user) notFound();
 
-  const logoLinks = user.links.filter((link: any) =>
+  const logoLinks = user.links.filter((link) =>
     link.type !== 'header' && (
       link.displayStyle === 'icon' || (link.displayStyle === 'auto' && SOCIAL_LOGOS.includes(link.platform))
     )
   );
-  const barLinks = user.links.filter((link: any) =>
+  const barLinks = user.links.filter((link) =>
     link.type === 'header' || link.displayStyle === 'rich' || link.displayStyle === 'button' ||
     (link.displayStyle === 'auto' && !SOCIAL_LOGOS.includes(link.platform))
   );
 
   const buttonStyleClass = (user.buttonStyle === 'liquid_glass' && user.themeColor) ? 'liquid-glass user-theme' : (user.buttonStyle === 'liquid_glass' ? 'liquid-glass' : '');
-  const bgStyle = buildBackground(user);
+
+  // Campaign: active if enabled and not expired
+  const now = new Date()
+  const campaignActive = user.campaign?.enabled &&
+    (!user.campaign.endsAt || new Date(user.campaign.endsAt) > now)
+
+  // Status: active if not expired
+  const statusActive = user.statusText &&
+    (!user.statusExpiresAt || new Date(user.statusExpiresAt) > now)
 
   // Build Spotify embed URL
   let spotifyEmbedUrl = ''
@@ -100,41 +136,84 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
     return cards
   }
 
+  const safeBgColor = sanitizeColor(user.bgColor)
+  const safeBgGradient1 = sanitizeColor(user.bgGradient1)
+  const safeBgGradient2 = sanitizeColor(user.bgGradient2)
+  const safeBgGradientDir = sanitizeCssDir(user.bgGradientDir)
+  const safeBgImageUrl = sanitizeImageUrl(user.bgImageUrl)
+  const safeThemeColor = sanitizeColor(user.themeColor)
+
   return (
     <>
       {/* ── Background System ── */}
       <style dangerouslySetInnerHTML={{
         __html: `.user-bg-layer-dynamic {
-          ${user.bgType === 'solid' && user.bgColor ? `background-color: ${user.bgColor};` : ''}
-          ${user.bgType === 'gradient' && user.bgGradient1 && user.bgGradient2 ? `background: linear-gradient(${user.bgGradientDir || '135deg'}, ${user.bgGradient1}, ${user.bgGradient2});` : ''}
-          ${user.bgType === 'image' && user.bgImageUrl ? `background-image: url('${user.bgImageUrl}'); background-size: cover; background-position: center; filter: blur(3px) brightness(0.9); transform: scale(1.02);` : ''}
+          ${user.bgType === 'solid' && safeBgColor ? `background-color: ${safeBgColor};` : ''}
+          ${user.bgType === 'gradient' && safeBgGradient1 && safeBgGradient2 ? `background: linear-gradient(${safeBgGradientDir}, ${safeBgGradient1}, ${safeBgGradient2});` : ''}
+          ${user.bgType === 'image' && safeBgImageUrl ? `background-image: url('${safeBgImageUrl}'); background-size: cover; background-position: center; filter: blur(3px) brightness(0.9); transform: scale(1.02);` : ''}
         }`
       }} />
       <div className="user-bg-layer user-bg-layer-dynamic" />
       <div className="user-bg-overlay" />
 
-      {(user.buttonStyle === 'liquid_glass' && user.themeColor) && (
-        <style dangerouslySetInnerHTML={{ __html: `.user-theme { --custom-theme-color: ${user.themeColor}; --custom-glow-color: ${user.themeColor}66; }` }} />
+      {(user.buttonStyle === 'liquid_glass' && safeThemeColor) && (
+        <style dangerouslySetInnerHTML={{ __html: `.user-theme { --custom-theme-color: ${safeThemeColor}; --custom-glow-color: ${safeThemeColor}66; }` }} />
       )}
 
       <main className="container public-container">
+
+        {/* ── Modo Campaña ── */}
+        {campaignActive && user.campaign && (
+          <div className="campaign-banner">
+            {user.campaign.bannerUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.campaign.bannerUrl} alt="Campaña" className="campaign-banner-img" loading="lazy" />
+            )}
+            <div className="campaign-banner-content">
+              {user.campaign.title && <h3 className="campaign-banner-title">{user.campaign.title}</h3>}
+              {user.campaign.message && <p className="campaign-banner-msg">{user.campaign.message}</p>}
+              {user.campaign.ctaLabel && user.campaign.ctaUrl && (
+                <a href={user.campaign.ctaUrl} target="_blank" rel="noopener noreferrer" className="campaign-banner-cta">
+                  {user.campaign.ctaLabel} <i className="fa-solid fa-arrow-right"></i>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── Header / Profile ── */}
         <header className={`profile-section ${user.bannerUrl ? 'has-banner' : ''}`}>
           <LanguageSwitcher />
 
           {user.bannerUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.bannerUrl} alt="Banner de perfil" className="profile-banner-img" />
+            <img src={user.bannerUrl} alt="Banner de perfil" className="profile-banner-img" loading="eager" />
           )}
 
           <div className={`profile-header-content profile-align-${user.avatarAlign || 'center'}`}>
-            <AvatarViewer 
+            <AvatarViewer
               src={user.avatarUrl || user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=random&color=fff&size=200`}
               alt="Perfil"
             />
             <div className="profile-text-content">
               <h1 className="name">{user.name || user.username}</h1>
               <p className="bio">{user.bio || "¡Este usuario no ha escrito una biografía!"}</p>
+
+              {/* Estado temporal */}
+              {statusActive && (
+                <div className="status-badge">
+                  <span className="status-emoji">{user.statusEmoji || '💬'}</span>
+                  <span className="status-text">{user.statusText}</span>
+                </div>
+              )}
+
+              {/* Fuera de horario */}
+              {user.outOfOfficeEnabled && (
+                <div className="out-of-office-badge">
+                  <i className="fa-solid fa-moon"></i>
+                  <span>{user.outOfOfficeMsg || 'Fuera de horario'}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -145,7 +224,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                 const platform = PLATFORMS[link.platform] || PLATFORMS.other;
                 return (
                   <a key={link.id} href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer"
-                    className={`icon-link ${buttonStyleClass}`} data-platform={link.platform} title={link.title}>
+                    className={`icon-link icon-shape-${user.socialIconShape || 'rounded'} icon-width-${user.socialIconWidth || 'normal'} ${buttonStyleClass}`} data-platform={link.platform} title={link.title}>
                     <i className={platform.icon}></i>
                   </a>
                 );
@@ -170,23 +249,35 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
         {user.businessConfig?.enabled && (
           <section className="business-profile-cards">
             {user.businessConfig.menuUrl && (
-              <a href={user.businessConfig.menuUrl} target="_blank" rel="noopener noreferrer" className={`link-card business-card-highlighted ${buttonStyleClass}`}>
-                <div className="link-icon business-menu-icon"><i className="fa-solid fa-utensils text-white"></i></div>
-                <div className="link-text-group">
-                  <span className="link-text">Ver Menú Digital</span>
-                  <span className="link-subtext">Haz click para abrir</span>
-                </div>
-                <i className="fa-solid fa-chevron-right arrow-icon"></i>
-              </a>
+              <MenuButton 
+                menuUrl={user.businessConfig.menuUrl} 
+                buttonStyleClass={buttonStyleClass} 
+              />
             )}
 
             <div className="business-details-grid">
               {user.businessConfig.hours && (
-                <div className={`business-info-card ${buttonStyleClass}`}>
-                  <i className="fa-solid fa-clock text-portfolio"></i>
-                  <div className="info-text">
-                    <strong>Horarios</strong>
-                    <p className="pre-line">{user.businessConfig.hours}</p>
+                <div className={`business-info-card wifi-card ${buttonStyleClass}`}>
+                  <i className="fa-solid fa-clock text-portfolio wifi-card-icon"></i>
+                  <div className="info-text wifi-info">
+                    <div className="wifi-title-row">
+                      <strong className="wifi-title">Horarios de Atención</strong>
+                      <OpenNowBadge hoursText={user.businessConfig.hours} />
+                    </div>
+                    <div className="hours-list">
+                      {user.businessConfig.hours.split('\n').map((line: string, i: number) => {
+                        const parts = line.split(/:\s(.+)/); // Split only on first colon with space
+                        if (parts.length > 1 && line.includes(' a ')) {
+                          return (
+                            <div key={i} className="hours-row">
+                              <span className="hours-day">{parts[0]}</span>
+                              <span className="hours-time">{parts[1]}</span>
+                            </div>
+                          );
+                        }
+                        return <p key={i} className="pre-line hours-text-fallback">{line}</p>;
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -263,7 +354,13 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                     return (
                       <a key={link.id} href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer"
                         className={`link-card ${buttonStyleClass}`} data-platform={link.platform}>
-                        <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
+                        <div className="link-icon" data-platform={link.customImage ? undefined : link.platform}>
+                          {link.customImage
+                            // eslint-disable-next-line @next/next/no-img-element
+                            ? <img src={link.customImage} alt={link.title} className="link-custom-img" loading="lazy" />
+                            : <i className={platform.icon}></i>
+                          }
+                        </div>
                         <span className="link-text">{link.title}</span>
                         <i className="fa-solid fa-chevron-right arrow-icon"></i>
                       </a>
@@ -332,7 +429,13 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
                 return (
                   <a key={link.id} href={`/api/click/${link.id}`} target="_blank" rel="noopener noreferrer"
                     className={`link-card ${buttonStyleClass}`} data-platform={link.platform}>
-                    <div className="link-icon" data-platform={link.platform}><i className={platform.icon}></i></div>
+                    <div className="link-icon" data-platform={link.customImage ? undefined : link.platform}>
+                      {link.customImage
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={link.customImage} alt={link.title} className="link-custom-img" loading="lazy" />
+                        : <i className={platform.icon}></i>
+                      }
+                    </div>
                     <span className="link-text">{link.title}</span>
                     <i className="fa-solid fa-chevron-right arrow-icon"></i>
                   </a>
@@ -342,15 +445,83 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
           </section>
         )}
 
+        {/* ── PDF Descargable ── */}
+        {user.pdfCatalogUrl && (
+          <section className="links-section">
+            <a href={user.pdfCatalogUrl} target="_blank" rel="noopener noreferrer"
+              className={`link-card ${buttonStyleClass}`} data-platform="other">
+              <div className="link-icon"><i className="fa-solid fa-file-pdf"></i></div>
+              <span className="link-text">{user.pdfCatalogLabel || 'Descargar Catálogo'}</span>
+              <i className="fa-solid fa-download arrow-icon"></i>
+            </a>
+          </section>
+        )}
+
+        {/* ── AFIP / Facturación ── */}
+        {user.cuit && (
+          <section className="links-section">
+            <div className={`business-info-card wifi-card ${buttonStyleClass}`}>
+              <i className="fa-solid fa-file-invoice wifi-card-icon icon-afip"></i>
+              <div className="info-text wifi-info">
+                <strong className="wifi-title">Facturación</strong>
+                <div className="wifi-row">
+                  <span className="wifi-label">CUIT</span>
+                  <span className="wifi-value">{user.cuit}</span>
+                  <CopyButton textToCopy={user.cuit} className="copy-btn copy-wifi-inline" />
+                </div>
+                {user.afipUrl && (
+                  <a href={user.afipUrl} target="_blank" rel="noopener noreferrer" className="afip-link">
+                    Pedir factura online →
+                  </a>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Instagram Feed ── */}
+        {user.instagramHandle && user.instagramFeedEnabled && (
+          <section className="links-section">
+            <a
+              href={`https://www.instagram.com/${user.instagramHandle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`link-card ${buttonStyleClass}`}
+              data-platform="instagram"
+            >
+              <div className="link-icon" data-platform="instagram">
+                <i className="fa-brands fa-instagram"></i>
+              </div>
+              <div className="instagram-link-info">
+                <span className="link-text">@{user.instagramHandle}</span>
+                <small className="bio instagram-link-subtitle">Ver perfil en Instagram</small>
+              </div>
+              <i className="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+            </a>
+          </section>
+        )}
+
         {/* ── Booking Section ── */}
         {user.bookingConfig?.enabled && (
           <BookingSection username={username} title={user.bookingConfig.title} />
         )}
 
+        {/* ── Formulario de Presupuesto ── */}
+        {user.quoteForm?.enabled && (
+          <section className="links-section">
+            <QuoteSection
+              username={username}
+              title={user.quoteForm.title}
+              description={user.quoteForm.description}
+              fields={(() => { try { return JSON.parse(user.quoteForm!.fields) } catch { return [] } })()}
+            />
+          </section>
+        )}
+
         {/* ── Contact Form ── */}
         {user.contactFormEnabled && (
-          <ContactForm 
-            username={username} 
+          <ContactForm
+            username={username}
             askName={user.contactFormAskName}
             askEmail={user.contactFormAskEmail}
             askPhone={user.contactFormAskPhone}
@@ -358,12 +529,41 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
           />
         )}
 
-
+        {/* ── Equipo ── */}
+        {user.teamEnabled && user.teamMembers.length > 0 && (
+          <section className="links-section">
+            <h3 className="link-header-separator">Nuestro Equipo</h3>
+            <div className="team-grid">
+              {user.teamMembers.map(m => (
+                <div key={m.id} className={`team-member-card ${buttonStyleClass}`}>
+                  {m.avatarUrl
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={m.avatarUrl} alt={m.name} className="team-member-avatar" loading="lazy" />
+                    : <div className="team-member-avatar-placeholder"><i className="fa-solid fa-user"></i></div>
+                  }
+                  <div className="team-member-info">
+                    <strong className="team-member-name">{m.name}</strong>
+                    {m.role && <span className="team-member-role">{m.role}</span>}
+                  </div>
+                  {m.profileUrl && (
+                    <a href={m.profileUrl} target="_blank" rel="noopener noreferrer" className="team-member-link" title="Ver perfil">
+                      <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <footer className="public-footer">
           <p>&copy; {new Date().getFullYear()} Creado con <strong>Cloudinf</strong>.</p>
         </footer>
       </main>
+
+      <ViewTracker username={username} />
+
+
     </>
   );
 }
