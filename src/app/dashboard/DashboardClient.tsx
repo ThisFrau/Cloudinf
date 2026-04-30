@@ -372,22 +372,20 @@ export default function DashboardClient({
           <button type="button" aria-label="Mi Cuenta" title="Mi Cuenta" onClick={() => setActiveTab('cuenta')} className="btn-secondary-sm">
             <i className="fa-solid fa-circle-user"></i>
           </button>
-          <Link href="/tienda" className="btn-store btn-auto-width" title="Ir a la Tienda NFC">
+          <Link href="/tienda" className="btn-secondary-sm btn-auto-width" title="Ir a la Tienda NFC">
             <i className="fa-solid fa-store"></i>
             <span>Tienda</span>
           </Link>
           {isAdmin && (
-            <Link href="/admin/coupons" className="btn-secondary btn-auto-width" title="Panel de administración">
+            <Link href="/admin/coupons" className="btn-secondary-sm btn-auto-width" title="Panel de administración">
               <i className="fa-solid fa-shield-halved"></i>
               <span>Admin</span>
             </Link>
           )}
-          <Link href={`/${user.username}`} target="_blank" className="btn-primary text-none-pad btn-auto-width">
-            Ver Perfil
+          <Link href={`/${user.username}`} target="_blank" className="btn-primary btn-auto-width">
+            <i className="fa-solid fa-arrow-up-right-from-square"></i>
+            <span>Ver Perfil</span>
           </Link>
-          <form action={signOutAction} className="form-inline">
-            <button type="submit" className="btn-danger btn-auto-width">Salir</button>
-          </form>
         </div>
       </div>
 
@@ -1442,6 +1440,18 @@ export default function DashboardClient({
                 <i className="fa-solid fa-trash mr-4px"></i>
                 Eliminar mi cuenta permanentemente
               </button>
+            </div>
+
+            {/* ── Cerrar sesión ── */}
+            <div className="form-container mb-1rem">
+              <h2 className="mb-05rem">Cerrar sesión</h2>
+              <p className="bio mb-1rem">Salís de tu cuenta en este dispositivo.</p>
+              <form action={signOutAction}>
+                <button type="submit" className="btn-danger w-full" disabled={isPending}>
+                  <i className="fa-solid fa-right-from-bracket mr-4px"></i>
+                  Cerrar sesión
+                </button>
+              </form>
             </div>
 
           </div>
