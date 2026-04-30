@@ -11,7 +11,12 @@ import {
   addTeamMember, deleteTeamMember, saveTeamSettings,
   saveQuoteForm, deleteQuoteSubmission,
   generateReferralCode, generateAgencyToken, revokeAgencyToken,
+  cancelPlan, getTeamPricingBreakdown, updateTeamProfileCount,
 } from '@/app/actions/dashboard'
+import {
+  PLAN_LABELS, PLAN_FEATURES, PLAN_PRICES, TEAM_EXTRA_PROFILE_PRICE,
+  TEAM_BASE_PROFILES, NFC_CARD_PRICE, type PlanId, type TeamPricing,
+} from '@/lib/plans'
 import { updatePassword, updateEmail, updateUsername, deleteAccount } from '@/app/actions/auth'
 import { PLATFORMS } from '@/lib/constants'
 import Link from 'next/link'
@@ -30,6 +35,15 @@ type QuoteSubmissionType = { id: string; name: string | null; email: string | nu
 type QuoteFormType = { id: string; enabled: boolean; title: string; description: string | null; fields: string; submissions: QuoteSubmissionType[] }
 type ReferralType = { id: string; referredEmail: string; status: string; createdAt: Date }
 type ScanLogType = { id: string; source: string | null; device: string | null; createdAt: Date }
+type SubscriptionMeta = {
+  plan: string
+  effectivePlan: PlanId
+  planExpiresAt: Date | null
+  teamProfileCount: number
+  nfcBonus: { active: boolean; daysLeft: number; expiresAt: Date | null }
+  teamPricing: TeamPricing | null
+}
+
 type UserType = {
   id: string; name: string | null; username: string | null; bio: string | null;
   avatarUrl: string | null; image: string | null; buttonStyle: string; socialIconShape: string; socialIconWidth: string; themeColor: string | null;
@@ -79,7 +93,7 @@ function StatBar({ pct }: { pct: number }) {
 }
 
 export default function DashboardClient({
-  user, signOutAction, bookings, stats, scanLogs, accountMeta,
+  user, signOutAction, bookings, stats, scanLogs, accountMeta, subscriptionMeta, isAdmin,
 }: {
   user: UserType;
   signOutAction: () => Promise<void>;
@@ -87,8 +101,10 @@ export default function DashboardClient({
   stats: StatsType;
   scanLogs: ScanLogType[];
   accountMeta: { hasPassword: boolean; isOAuth: boolean; createdAt: Date };
+  subscriptionMeta: SubscriptionMeta;
+  isAdmin: boolean;
 }) {
-  const [activeTab, setActiveTab] = useState<'profile'|'links'|'business'|'booking'|'inbox'|'stats'|'cuenta'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile'|'links'|'business'|'booking'|'inbox'|'stats'|'plan'|'cuenta'>('profile')
   const [passwordMsg, setPasswordMsg] = useState<{ ok?: boolean; text: string } | null>(null)
   const [emailMsg, setEmailMsg] = useState<{ ok?: boolean; text: string } | null>(null)
   const [usernameMsg, setUsernameMsg] = useState<{ ok?: boolean; text: string } | null>(null)
@@ -102,7 +118,11 @@ export default function DashboardClient({
   const [selectedPlatform, setSelectedPlatform] = useState('whatsapp')
   const [bgType, setBgType] = useState(user.bgType || 'default')
   const [showQR, setShowQR] = useState(false)
-  const [qrMode, setQrMode] = useState<'profile' | 'custom'>(user.qrDynamicUrl ? 'custom' : 'profile')
+  const [qrMode, setQrMode] = useState<'profile' | 'custom' | 'whatsapp'>(
+    user.qrDynamicUrl?.startsWith('https://wa.me/') ? 'whatsapp'
+    : user.qrDynamicUrl ? 'custom'
+    : 'profile'
+  )
   const [contactFormEnabled, setContactFormEnabled] = useState(user.contactFormEnabled)
   const [iconShape, setIconShape] = useState(user.socialIconShape || 'rounded')
   const [iconWidth, setIconWidth] = useState(user.socialIconWidth || 'normal')
@@ -126,6 +146,9 @@ export default function DashboardClient({
   const [newField, setNewField] = useState('')
   const [referralCode, setReferralCode] = useState<string>(user.referralCode || '')
   const [agencyToken, setAgencyToken] = useState<string>(user.agencyToken || '')
+  const [planMsg, setPlanMsg] = useState<{ ok?: boolean; text: string } | null>(null)
+  const [teamProfileInput, setTeamProfileInput] = useState(subscriptionMeta.teamProfileCount)
+  const [liveTeamPricing, setLiveTeamPricing] = useState<TeamPricing | null>(subscriptionMeta.teamPricing)
   const teamAvatarRef = useRef<HTMLInputElement>(null)
   const [teamAvatarPreview, setTeamAvatarPreview] = useState<string>('')
   const campaignBannerRef = useRef<HTMLInputElement>(null)
@@ -331,6 +354,7 @@ export default function DashboardClient({
     { id: 'booking', label: 'Agenda', icon: 'fa-calendar', cls: 'tab-booking' },
     { id: 'inbox', label: 'Mensajes', icon: 'fa-envelope', cls: 'tab-inbox' },
     { id: 'stats', label: 'Estadísticas', icon: 'fa-chart-simple', cls: 'tab-stats' },
+    { id: 'plan', label: 'Mi Plan', icon: 'fa-crown', cls: 'tab-plan' },
   ] as const
 
   return (
@@ -352,6 +376,12 @@ export default function DashboardClient({
             <i className="fa-solid fa-store"></i>
             <span>Tienda</span>
           </Link>
+          {isAdmin && (
+            <Link href="/admin/coupons" className="btn-secondary btn-auto-width" title="Panel de administración">
+              <i className="fa-solid fa-shield-halved"></i>
+              <span>Admin</span>
+            </Link>
+          )}
           <Link href={`/${user.username}`} target="_blank" className="btn-primary text-none-pad btn-auto-width">
             Ver Perfil
           </Link>
@@ -527,6 +557,10 @@ export default function DashboardClient({
                 e.preventDefault(); setExtrasMsg(null)
                 const fd = new FormData(e.currentTarget)
                 if (qrMode === 'profile') fd.set('qrDynamicUrl', '')
+                if (qrMode === 'whatsapp') {
+                  const phone = (fd.get('waPhone') as string || '').replace(/\D/g, '')
+                  fd.set('qrDynamicUrl', phone ? `https://wa.me/${phone}` : '')
+                }
                 startTransition(async () => {
                   const r = await saveExtras(fd)
                   if (r?.error) setExtrasMsg({ ok: false, text: r.error })
@@ -548,24 +582,40 @@ export default function DashboardClient({
                 <div className="input-group mb-1rem">
                   <label>¿A dónde redirige tu QR?</label>
                 </div>
-                <div className="qr-mode-picker">
+                <div className="qr-mode-picker" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
                   <button type="button" className={`qr-mode-option${qrMode === 'profile' ? ' qr-mode-selected' : ''}`} onClick={() => setQrMode('profile')}>
                     <i className="fa-solid fa-user" />
                     Mi perfil
                   </button>
+                  <button type="button" className={`qr-mode-option${qrMode === 'whatsapp' ? ' qr-mode-selected' : ''}`} onClick={() => setQrMode('whatsapp')}>
+                    <i className="fa-brands fa-whatsapp" />
+                    WhatsApp
+                  </button>
                   <button type="button" className={`qr-mode-option${qrMode === 'custom' ? ' qr-mode-selected' : ''}`} onClick={() => setQrMode('custom')}>
                     <i className="fa-solid fa-link" />
-                    URL personalizada
+                    URL propia
                   </button>
                 </div>
 
+                {qrMode === 'whatsapp' && (
+                  <div className="input-group">
+                    <label htmlFor="waPhone">Número de WhatsApp (con código de país)</label>
+                    <input
+                      id="waPhone"
+                      name="waPhone"
+                      type="tel"
+                      defaultValue={user.qrDynamicUrl?.startsWith('https://wa.me/') ? user.qrDynamicUrl.replace('https://wa.me/', '') : ''}
+                      placeholder="Ej: 5491112345678"
+                    />
+                  </div>
+                )}
                 {qrMode === 'custom' && (
                   <div className="input-group">
                     <label htmlFor="qrDynamicUrl">URL de destino</label>
-                    <input id="qrDynamicUrl" name="qrDynamicUrl" type="url" defaultValue={user.qrDynamicUrl || ''} placeholder="https://..." />
+                    <input id="qrDynamicUrl" name="qrDynamicUrl" type="url" defaultValue={user.qrDynamicUrl?.startsWith('https://wa.me/') ? '' : user.qrDynamicUrl || ''} placeholder="https://..." />
                   </div>
                 )}
-                {qrMode === 'profile' && (
+                {(qrMode === 'profile' || qrMode === 'whatsapp') && (
                   <input type="hidden" name="qrDynamicUrl" value="" />
                 )}
 
@@ -1958,6 +2008,216 @@ export default function DashboardClient({
               }
             </div>
 
+          </div>
+        )}
+
+        {/* ══════════════ TAB: MI PLAN ══════════════ */}
+        {activeTab === 'plan' && (
+          <div>
+            {/* Banner de plan activo */}
+            <div className="form-container mb-1rem">
+              <div className="plan-header-row">
+                <div>
+                  <h2 className="mb-0">
+                    Plan actual:&nbsp;
+                    <span className={`plan-badge-inline plan-badge-${subscriptionMeta.effectivePlan}`}>
+                      {PLAN_LABELS[subscriptionMeta.effectivePlan]}
+                    </span>
+                    {subscriptionMeta.plan !== subscriptionMeta.effectivePlan && (
+                      <span className="plan-badge-inline plan-badge-nfc ml-4px">NFC Bonus</span>
+                    )}
+                  </h2>
+                  {subscriptionMeta.planExpiresAt && (
+                    <p className="bio text-sm mt-05rem">
+                      Vence el {new Date(subscriptionMeta.planExpiresAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </p>
+                  )}
+                </div>
+                {subscriptionMeta.effectivePlan === 'free' && (
+                  <span className="plan-free-note bio text-sm">Sin costo</span>
+                )}
+              </div>
+
+              {/* Bonus NFC activo */}
+              {subscriptionMeta.nfcBonus.active && (
+                <div className="nfc-bonus-banner mt-1rem">
+                  <i className="fa-solid fa-nfc-signal"></i>
+                  <div>
+                    <strong>Bonus NFC activo</strong>
+                    <p className="bio text-sm">
+                      Te quedan <strong>{subscriptionMeta.nfcBonus.daysLeft} días</strong> de Plan Pro gratis
+                      (vence el {subscriptionMeta.nfcBonus.expiresAt ? new Date(subscriptionMeta.nfcBonus.expiresAt).toLocaleDateString('es-AR') : '-'}).
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Cancelar plan (solo si está en plan pago activo) */}
+              {subscriptionMeta.plan !== 'free' && (
+                <div className="mt-1rem">
+                  {planMsg && <p className={`${planMsg.ok ? 'text-success' : 'text-error'} mb-05rem`}>{planMsg.text}</p>}
+                  <button
+                    type="button"
+                    className="btn-danger-sm"
+                    disabled={isPending}
+                    onClick={() => {
+                      if (confirm('¿Cancelar tu plan pago? Tu cuenta pasará al plan Gratuito.')) {
+                        startTransition(async () => {
+                          const r = await cancelPlan()
+                          if (r?.error) setPlanMsg({ ok: false, text: r.error })
+                          else setPlanMsg({ ok: true, text: '✅ Plan cancelado. Ya estás en el plan Gratuito.' })
+                        })
+                      }
+                    }}
+                  >
+                    <i className="fa-solid fa-ban mr-4px"></i> Cancelar plan
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Gestión de perfiles Team */}
+            {subscriptionMeta.effectivePlan === 'team' && (
+              <div className="form-container mb-1rem">
+                <h2 className="mb-05rem">Perfiles del equipo</h2>
+                <p className="bio mb-1rem">
+                  Tu plan incluye <strong>{TEAM_BASE_PROFILES} perfiles base</strong>.
+                  Cada perfil adicional cuesta <strong>${TEAM_EXTRA_PROFILE_PRICE.toLocaleString('es-AR')}/mes</strong>.
+                </p>
+                <div className="dashboard-actions-row flex-wrap-center mb-05rem">
+                  <label htmlFor="team-profile-count" className="bio">Cantidad de perfiles:</label>
+                  <input
+                    id="team-profile-count"
+                    type="number"
+                    min={TEAM_BASE_PROFILES}
+                    value={teamProfileInput}
+                    className="input-number-sm"
+                    onChange={async e => {
+                      const v = Math.max(TEAM_BASE_PROFILES, parseInt(e.target.value) || TEAM_BASE_PROFILES)
+                      setTeamProfileInput(v)
+                      const pricing = await getTeamPricingBreakdown(v)
+                      setLiveTeamPricing(pricing)
+                    }}
+                  />
+                </div>
+                {liveTeamPricing && (
+                  <div className="team-pricing-breakdown">
+                    <div className="team-pricing-row">
+                      <span>Base ({TEAM_BASE_PROFILES} perfiles)</span>
+                      <span>${(6999).toLocaleString('es-AR')}/mes</span>
+                    </div>
+                    {liveTeamPricing.profileCount > TEAM_BASE_PROFILES && (
+                      <div className="team-pricing-row">
+                        <span>+{liveTeamPricing.profileCount - TEAM_BASE_PROFILES} perfil(es) extra</span>
+                        <span>${((liveTeamPricing.profileCount - TEAM_BASE_PROFILES) * TEAM_EXTRA_PROFILE_PRICE).toLocaleString('es-AR')}/mes</span>
+                      </div>
+                    )}
+                    {liveTeamPricing.discountPct > 0 && (
+                      <div className="team-pricing-row team-pricing-discount">
+                        <span>Descuento ({Math.round(liveTeamPricing.discountPct * 100)}%)</span>
+                        <span>-${liveTeamPricing.discountAmount.toLocaleString('es-AR')}/mes</span>
+                      </div>
+                    )}
+                    <div className="team-pricing-row team-pricing-total">
+                      <strong>Total</strong>
+                      <strong>${liveTeamPricing.total.toLocaleString('es-AR')}/mes</strong>
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="btn-primary w-full mt-1rem"
+                  disabled={isPending}
+                  onClick={() => startTransition(async () => {
+                    const r = await updateTeamProfileCount(teamProfileInput)
+                    if (r?.error) setPlanMsg({ ok: false, text: r.error })
+                    else {
+                      setPlanMsg({ ok: true, text: '✅ Cantidad de perfiles actualizada.' })
+                      if (r?.pricing) setLiveTeamPricing(r.pricing)
+                    }
+                  })}
+                >
+                  Actualizar perfiles
+                </button>
+                {planMsg && <p className={`${planMsg.ok ? 'text-success' : 'text-error'} mt-05rem`}>{planMsg.text}</p>}
+              </div>
+            )}
+
+            {/* Comparativa de planes */}
+            <div className="form-container mb-1rem">
+              <h2 className="mb-1rem">Comparativa de Planes</h2>
+              <div className="plans-grid">
+
+                {/* Plan Gratuito */}
+                <div className={`plan-card ${subscriptionMeta.effectivePlan === 'free' ? 'plan-card-active' : ''}`}>
+                  <div className="plan-card-header">
+                    <h3>{PLAN_LABELS.free}</h3>
+                    <div className="plan-card-price">
+                      <span className="plan-price-amount">$0</span>
+                    </div>
+                  </div>
+                  <ul className="plan-features-list">
+                    {PLAN_FEATURES.free.map(f => (
+                      <li key={f}><i className="fa-solid fa-check text-success mr-4px"></i>{f}</li>
+                    ))}
+                  </ul>
+                  {subscriptionMeta.effectivePlan === 'free' && (
+                    <div className="plan-card-current-badge">Plan actual</div>
+                  )}
+                </div>
+
+                {/* Plan Pro */}
+                <div className={`plan-card plan-card-featured ${subscriptionMeta.effectivePlan === 'pro' ? 'plan-card-active' : ''}`}>
+                  <div className="plan-card-header">
+                    <h3>{PLAN_LABELS.pro} <span className="plan-badge-inline plan-badge-pro">Popular</span></h3>
+                    <div className="plan-card-price">
+                      <span className="plan-price-amount">${PLAN_PRICES.pro.toLocaleString('es-AR')}</span>
+                      <span className="plan-price-period">/mes</span>
+                    </div>
+                  </div>
+                  <ul className="plan-features-list">
+                    {PLAN_FEATURES.pro.map(f => (
+                      <li key={f}><i className="fa-solid fa-check text-success mr-4px"></i>{f}</li>
+                    ))}
+                  </ul>
+                  <div className="plan-nfc-note">
+                    <i className="fa-solid fa-nfc-signal mr-4px"></i>
+                    Tarjeta NFC: ${(44999).toLocaleString('es-AR')} + <strong>2 meses Pro gratis</strong>
+                  </div>
+                  {subscriptionMeta.effectivePlan === 'pro' ? (
+                    <div className="plan-card-current-badge">Plan actual</div>
+                  ) : (
+                    <a href="/tienda" className="btn-primary w-full text-center mt-1rem">
+                      Suscribirme al Pro
+                    </a>
+                  )}
+                </div>
+
+                {/* Plan Team */}
+                <div className={`plan-card ${subscriptionMeta.effectivePlan === 'team' ? 'plan-card-active' : ''}`}>
+                  <div className="plan-card-header">
+                    <h3>{PLAN_LABELS.team}</h3>
+                    <div className="plan-card-price">
+                      <span className="plan-price-amount">${PLAN_PRICES.team.toLocaleString('es-AR')}</span>
+                      <span className="plan-price-period">/mes base</span>
+                    </div>
+                  </div>
+                  <ul className="plan-features-list">
+                    {PLAN_FEATURES.team.map(f => (
+                      <li key={f}><i className="fa-solid fa-check text-success mr-4px"></i>{f}</li>
+                    ))}
+                  </ul>
+                  {subscriptionMeta.effectivePlan === 'team' ? (
+                    <div className="plan-card-current-badge">Plan actual</div>
+                  ) : (
+                    <a href="/tienda" className="btn-secondary w-full text-center mt-1rem">
+                      Ver Plan Team
+                    </a>
+                  )}
+                </div>
+
+              </div>
+            </div>
           </div>
         )}
 

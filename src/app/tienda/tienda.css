@@ -1083,3 +1083,142 @@
 @media (max-width: 600px) {
   .st-compare { display: none; }
 }
+
+/* ══════════════════════════════════════════
+   COUPON WIDGET
+══════════════════════════════════════════ */
+
+.cw-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+/* Precio */
+.cw-price-base {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.45);
+  text-align: center;
+}
+.cw-price-display { text-align: center; }
+.cw-price-original {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.35);
+  text-decoration: line-through;
+  margin-bottom: 2px;
+}
+.cw-price-final {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #4ade80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.cw-discount-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(74,222,128,0.18);
+  color: #4ade80;
+  border: 1px solid rgba(74,222,128,0.3);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.cw-saving {
+  font-size: 0.78rem;
+  color: #4ade80;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+/* Formulario de cupón */
+.cw-form {
+  display: flex;
+  gap: 0.5rem;
+}
+.cw-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: inherit;
+  font-size: 0.82rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.06em;
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.15s;
+}
+.cw-input:focus { border-color: rgba(168,85,247,0.45); }
+.cw-input::placeholder { font-family: inherit; letter-spacing: normal; opacity: 0.5; font-size: 0.78rem; }
+.cw-apply-btn {
+  padding: 0.5rem 0.9rem;
+  background: rgba(168,85,247,0.18);
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 10px;
+  color: #c084fc;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.cw-apply-btn:hover { background: rgba(168,85,247,0.3); }
+.cw-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Cupón aplicado */
+.cw-coupon-applied {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.22);
+  border-radius: 10px;
+  font-size: 0.83rem;
+}
+.cw-coupon-applied i { color: #4ade80; flex-shrink: 0; }
+.cw-coupon-applied span { flex: 1; color: rgba(255,255,255,0.8); }
+.cw-coupon-applied strong { color: #4ade80; font-family: 'Courier New', monospace; }
+.cw-remove-btn {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255,255,255,0.07);
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.cw-remove-btn:hover { background: rgba(255,255,255,0.14); }
+
+/* Error */
+.cw-error {
+  font-size: 0.8rem;
+  color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  background: rgba(248,113,113,0.07);
+  border-radius: 8px;
+}
+
+/* Precio en botón CTA */
+.cw-btn-price-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(255,255,255,0.15);
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 4px;
+}

@@ -124,6 +124,9 @@ export async function claimCardWithSetup(token: string, formData: FormData) {
   if (!card) return { error: "Tarjeta inválida" }
   if (card.status === 'claimed' && card.userId !== session.user.id) return { error: "Tarjeta ya reclamada" }
 
+  // No otorgar bonus si esta tarjeta ya fue reclamada por este mismo usuario antes
+  const alreadyClaimed = card.status === 'claimed' && card.userId === session.user.id
+
   const name = (formData.get("name") as string)?.trim() || null
   const businessName = (formData.get("businessName") as string)?.trim() || null
   const phone = (formData.get("phone") as string)?.trim() || null
@@ -131,14 +134,32 @@ export async function claimCardWithSetup(token: string, formData: FormData) {
   const VALID_TYPES = ["restaurant", "bar", "cafe", "store", "other"]
   const type = VALID_TYPES.includes(rawType) ? rawType : "restaurant"
 
+  const now = new Date()
+
   await prisma.$transaction(async (tx) => {
     await tx.nfcCard.update({
       where: { token: token.toUpperCase() },
-      data: { status: 'claimed', userId: session.user!.id },
+      data: { status: 'claimed', userId: session.user!.id, claimedAt: now },
     })
 
-    if (name) {
-      await tx.user.update({ where: { id: session.user!.id }, data: { name } })
+    const userUpdates: Record<string, unknown> = {}
+    if (name) userUpdates.name = name
+
+    // Solo otorgar bonus si la tarjeta es nueva (no re-claim del mismo usuario)
+    if (!alreadyClaimed) {
+      // Extender el bonus si ya tiene uno activo; de lo contrario iniciar desde hoy
+      const existing = await tx.user.findUnique({
+        where: { id: session.user!.id },
+        select: { nfcProBonusUntil: true },
+      })
+      const base = existing?.nfcProBonusUntil && existing.nfcProBonusUntil > now
+        ? existing.nfcProBonusUntil
+        : now
+      userUpdates.nfcProBonusUntil = new Date(base.getTime() + 60 * 24 * 60 * 60 * 1000)
+    }
+
+    if (Object.keys(userUpdates).length > 0) {
+      await tx.user.update({ where: { id: session.user!.id }, data: userUpdates })
     }
 
     if (businessName || phone) {

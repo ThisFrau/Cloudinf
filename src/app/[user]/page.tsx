@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { PLATFORMS } from "@/lib/constants";
+import { getEffectivePlan, planShowsWatermark } from "@/lib/plans";
 import type { Metadata } from 'next'
 import BookingSection from "./_components/BookingSection";
 import ContactForm from "./_components/ContactForm";
@@ -53,6 +54,7 @@ const getPublicUser = cache(async (username: string) => {
       teamMembers: { orderBy: { order: 'asc' } },
       quoteForm: true,
     },
+    // plan fields needed for watermark + feature gates
   })
 })
 
@@ -135,6 +137,13 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
     if (current.links.length > 0 || current.title) cards.push(current)
     return cards
   }
+
+  const effectivePlan = getEffectivePlan({
+    plan: user.plan,
+    planExpiresAt: user.planExpiresAt,
+    nfcProBonusUntil: user.nfcProBonusUntil,
+  })
+  const showWatermark = planShowsWatermark(effectivePlan)
 
   const safeBgColor = sanitizeColor(user.bgColor)
   const safeBgGradient1 = sanitizeColor(user.bgGradient1)
@@ -557,7 +566,16 @@ export default async function PublicProfile({ params }: { params: Promise<{ user
         )}
 
         <footer className="public-footer">
-          <p>&copy; {new Date().getFullYear()} Creado con <strong>Cloudinf</strong>.</p>
+          {showWatermark ? (
+            <a href="/" className="watermark-link" title="Crear mi perfil gratis en Cloudinf">
+              <span className="watermark-badge">
+                <i className="fa-solid fa-bolt"></i>
+                Creado con <strong>Cloudinf</strong> — ¡Gratis!
+              </span>
+            </a>
+          ) : (
+            <p>&copy; {new Date().getFullYear()} Creado con <strong>Cloudinf</strong>.</p>
+          )}
         </footer>
       </main>
 

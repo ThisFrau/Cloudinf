@@ -609,6 +609,153 @@ input[type="checkbox"]:checked + label {
   font-weight: 600;
 }
 
+/* === PLANES / SUSCRIPCIÓN === */
+
+/* Badges de plan en línea */
+.plan-badge-inline {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.plan-badge-free  { background: rgba(148,163,184,0.2); color: #94a3b8; }
+.plan-badge-pro   { background: rgba(168,85,247,0.2);  color: #c084fc; }
+.plan-badge-team  { background: rgba(59,130,246,0.2);  color: #60a5fa; }
+.plan-badge-nfc   { background: rgba(34,197,94,0.2);   color: #4ade80; }
+
+/* Row superior en el banner de plan */
+.plan-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.plan-free-note { opacity: 0.6; }
+
+/* Banner bonus NFC */
+.nfc-bonus-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: 12px;
+}
+.nfc-bonus-banner i {
+  color: #4ade80;
+  font-size: 1.25rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Grid de planes */
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.plan-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.2s;
+}
+.plan-card-featured {
+  border-color: rgba(168,85,247,0.4);
+  background: rgba(168,85,247,0.06);
+}
+.plan-card-active {
+  border-color: rgba(168,85,247,0.6) !important;
+  box-shadow: 0 0 0 1px rgba(168,85,247,0.3);
+}
+.plan-card-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+.plan-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.plan-price-amount {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.plan-price-period {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+.plan-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  flex: 1;
+}
+.plan-nfc-note {
+  font-size: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.15);
+  border-radius: 8px;
+  color: #4ade80;
+}
+.plan-card-current-badge {
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem;
+  border-radius: 8px;
+  background: rgba(168,85,247,0.15);
+  color: #c084fc;
+  margin-top: auto;
+}
+
+/* Desglose de precio Team */
+.team-pricing-breakdown {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.875rem;
+}
+.team-pricing-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.team-pricing-row:last-child { border-bottom: none; }
+.team-pricing-discount { color: #4ade80; }
+.team-pricing-total {
+  background: rgba(255,255,255,0.04);
+  font-weight: 700;
+}
+.input-number-sm {
+  width: 80px;
+  text-align: center;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: inherit;
+}
+
 /* === RESPONSIVE TWEAKS === */
 @media (max-width: 600px) {
   .dashboard-header h1.name {
@@ -622,5 +769,8 @@ input[type="checkbox"]:checked + label {
     height: 42px;
     border-radius: 12px;
     font-size: 1.1rem;
+  }
+  .plans-grid {
+    grid-template-columns: 1fr;
   }
 }

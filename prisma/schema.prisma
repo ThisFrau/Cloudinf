@@ -3,9 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 model User {
@@ -76,6 +74,12 @@ model User {
 
   // ── Dashboard de agencia (Premium) ───────────────────────
   agencyToken        String?          @unique
+
+  // ── Suscripción / Planes ──────────────────────────────────
+  plan               String           @default("free") // "free" | "pro" | "team"
+  planExpiresAt      DateTime?        // vencimiento del plan pago (null = sin vencimiento o free)
+  nfcProBonusUntil   DateTime?        // bonus 2 meses Pro por activar tarjeta NFC
+  teamProfileCount   Int              @default(6)      // solo relevante en plan "team"
 
   accounts           Account[]
   links              Link[]
@@ -176,12 +180,13 @@ model Booking {
 }
 
 model NfcCard {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  status    String   @default("unclaimed") // "unclaimed" | "claimed"
-  userId    String?  // The user this card is bound to
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  token     String    @unique
+  status    String    @default("unclaimed") // "unclaimed" | "claimed"
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  claimedAt DateTime?
+  createdAt DateTime  @default(now())
 }
 
 model BusinessConfig {
@@ -261,6 +266,31 @@ model TeamMember {
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+}
+
+// ── Cupones de descuento ──────────────────────────────────────────────────────
+model Coupon {
+  id          String        @id @default(cuid())
+  code        String        @unique
+  discountPct Int           // porcentaje (1–100)
+  maxUses     Int?          // null = ilimitado
+  usedCount   Int           @default(0)
+  expiresAt   DateTime?     // null = sin vencimiento
+  active      Boolean       @default(true)
+  appliesTo   String        @default("all") // "nfc" | "subscription" | "all"
+  description String?
+  usages      CouponUsage[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model CouponUsage {
+  id        String   @id @default(cuid())
+  couponId  String
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  userId    String?  // null si el usuario no estaba logueado
+  context   String   // "nfc" | "subscription"
+  createdAt DateTime @default(now())
 }
 
 // ── Programa de referidos (Plus) ──────────────────────────────────────────────

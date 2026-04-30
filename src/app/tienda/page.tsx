@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import NavbarAuth from '../_components/NavbarAuth'
+import CouponWidget from './CouponWidget'
 import './tienda.css'
 
 const WA_NUMBER = '5491100000000' // Reemplazar con el número de WhatsApp del negocio
@@ -269,15 +270,14 @@ export default function TiendaPage() {
               ))}
             </ul>
 
-            <a
-              href={waLink('Hola! Quiero contratar el Plan Plus de Cloudinf ($3.000/mes). ¿Cómo procedo?')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="st-plan-btn st-btn-plus"
-            >
-              <i className="fa-brands fa-whatsapp" />
-              Contratar Plus
-            </a>
+            <CouponWidget
+              context="subscription"
+              basePrice={3000}
+              baseWaMsg="Hola! Quiero contratar el Plan Plus de Cloudinf ($3.000/mes). ¿Cómo procedo?"
+              buyLabel="Contratar Plus"
+              btnClass="st-plan-btn st-btn-plus"
+              btnIcon="fa-whatsapp fa-brands"
+            />
           </div>
 
           {/* ── Pack Premium ─── */}
@@ -308,15 +308,14 @@ export default function TiendaPage() {
               ))}
             </ul>
 
-            <a
-              href={waLink('Hola! Quiero contratar el Plan Premium de Cloudinf ($5.000/mes). ¿Cómo procedo?')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="st-plan-btn st-btn-premium"
-            >
-              <i className="fa-brands fa-whatsapp" />
-              Contratar Premium
-            </a>
+            <CouponWidget
+              context="subscription"
+              basePrice={5000}
+              baseWaMsg="Hola! Quiero contratar el Plan Premium de Cloudinf ($5.000/mes). ¿Cómo procedo?"
+              buyLabel="Contratar Premium"
+              btnClass="st-plan-btn st-btn-premium"
+              btnIcon="fa-whatsapp fa-brands"
+            />
           </div>
 
         </div>
@@ -388,15 +387,14 @@ export default function TiendaPage() {
             </div>
 
             <div className="st-nfc-cta-row">
-              <a
-                href={waLink('Hola! Quiero comprar una tarjeta NFC de Cloudinf ($44.999). ¿Cómo la pido?')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="st-btn-nfc-primary"
-              >
-                <i className="fa-solid fa-credit-card" />
-                Comprar ahora
-              </a>
+              <CouponWidget
+                context="nfc"
+                basePrice={44999}
+                baseWaMsg="Hola! Quiero comprar una tarjeta NFC de Cloudinf ($44.999). ¿Cómo la pido?"
+                buyLabel="Comprar ahora"
+                btnClass="st-btn-nfc-primary"
+                btnIcon="fa-credit-card"
+              />
               <a
                 href={waLink('Hola! Quisiera consultar sobre la tarjeta NFC de Cloudinf.')}
                 target="_blank"

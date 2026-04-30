@@ -10,6 +10,13 @@ import {
   sendBookingConfirmedEmail,
   sendBookingCancelledEmail,
 } from "@/lib/email"
+import {
+  getEffectivePlan,
+  canAddLink,
+  calculateTeamPrice,
+  NFC_PRO_BONUS_DAYS,
+  type TeamPricing,
+} from "@/lib/plans"
 
 // ─── Update Profile ────────────────────────────────────────────────────────────
 export async function updateProfile(formData: FormData) {
@@ -109,6 +116,18 @@ export async function createLink(formData: FormData) {
   const type = (formData.get("type") as string) || "link"
   const customImage = (formData.get("customImage") as string) || null
   const platformData = PLATFORMS[platform] || PLATFORMS.other
+
+  // Verificar límite de links según plan
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { plan: true, planExpiresAt: true, nfcProBonusUntil: true, _count: { select: { links: true } } },
+  })
+  if (!user) return { error: "Usuario no encontrado." }
+
+  const effectivePlan = getEffectivePlan(user)
+  if (!canAddLink(effectivePlan, user._count.links)) {
+    return { error: `El plan Gratuito permite hasta 3 links. Actualizá al Plan Pro para agregar ilimitados.` }
+  }
 
   try {
     await prisma.link.create({
@@ -687,5 +706,128 @@ export async function revokeAgencyToken() {
     return { success: true }
   } catch {
     return { error: "Error al revocar acceso." }
+  }
+}
+
+// ─── Gestión de Planes ─────────────────────────────────────────────────────────
+
+/**
+ * Activa o renueva un plan pago para el usuario.
+ * En producción esta función debe ser llamada SOLO desde un webhook
+ * de pago verificado (MercadoPago, Stripe, etc.), nunca directamente
+ * desde el cliente sin validación.
+ */
+export async function activatePlan(
+  userId: string,
+  plan: 'pro' | 'team',
+  months: number,
+  teamProfileCount?: number
+) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { plan: true, planExpiresAt: true },
+  })
+  if (!user) return { error: "Usuario no encontrado." }
+
+  const now = new Date()
+  // Si ya tiene un plan activo del mismo tipo, extender desde el vencimiento actual
+  const base =
+    user.plan === plan && user.planExpiresAt && user.planExpiresAt > now
+      ? user.planExpiresAt
+      : now
+  const planExpiresAt = new Date(base.getTime() + months * 30 * 24 * 60 * 60 * 1000)
+
+  const data: Record<string, unknown> = { plan, planExpiresAt }
+  if (plan === 'team' && teamProfileCount !== undefined) {
+    data.teamProfileCount = Math.max(6, teamProfileCount)
+  }
+
+  try {
+    await prisma.user.update({ where: { id: userId }, data })
+    revalidatePath("/dashboard")
+    return { success: true, planExpiresAt }
+  } catch {
+    return { error: "Error al activar plan." }
+  }
+}
+
+/**
+ * Cancela el plan pago del usuario y lo revierte a free.
+ */
+export async function cancelPlan() {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado" }
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { plan: 'free', planExpiresAt: null },
+    })
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch {
+    return { error: "Error al cancelar plan." }
+  }
+}
+
+/**
+ * Devuelve el desglose de precio para el plan Team según cantidad de perfiles.
+ */
+export async function getTeamPricingBreakdown(profileCount: number): Promise<TeamPricing> {
+  return calculateTeamPrice(profileCount)
+}
+
+/**
+ * Actualiza la cantidad de perfiles del plan Team.
+ * Solo disponible para usuarios con plan team activo.
+ */
+export async function updateTeamProfileCount(profileCount: number) {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "No autorizado" }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { plan: true, planExpiresAt: true, nfcProBonusUntil: true },
+  })
+  if (!user) return { error: "Usuario no encontrado." }
+
+  const effectivePlan = getEffectivePlan(user)
+  if (effectivePlan !== 'team') return { error: "Esta función requiere el Plan Team." }
+
+  const count = Math.max(6, profileCount)
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { teamProfileCount: count },
+    })
+    revalidatePath("/dashboard")
+    return { success: true, pricing: calculateTeamPrice(count) }
+  } catch {
+    return { error: "Error al actualizar perfiles." }
+  }
+}
+
+/**
+ * Activa manualmente el bonus NFC de 2 meses Pro para un usuario.
+ * Para uso administrativo o desde webhook de compra de tarjeta.
+ */
+export async function grantNfcBonus(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { nfcProBonusUntil: true },
+  })
+  if (!user) return { error: "Usuario no encontrado." }
+
+  const now = new Date()
+  const base =
+    user.nfcProBonusUntil && user.nfcProBonusUntil > now ? user.nfcProBonusUntil : now
+  const nfcProBonusUntil = new Date(
+    base.getTime() + NFC_PRO_BONUS_DAYS * 24 * 60 * 60 * 1000
+  )
+
+  try {
+    await prisma.user.update({ where: { id: userId }, data: { nfcProBonusUntil } })
+    return { success: true, nfcProBonusUntil }
+  } catch {
+    return { error: "Error al otorgar bonus NFC." }
   }
 }

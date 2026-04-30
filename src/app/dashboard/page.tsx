@@ -2,6 +2,8 @@ import { auth, signOut } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import DashboardClient from "./DashboardClient"
+import { getEffectivePlan, getNfcBonusStatus, calculateTeamPrice } from "@/lib/plans"
+import { isAdmin } from "@/lib/admin"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -49,6 +51,20 @@ export default async function DashboardPage() {
   const totalClicks = (user?.links ?? []).reduce((sum, l) => sum + l.clicks, 0)
   const profileViews = user?.profileViews ?? 0
 
+  const planData = {
+    plan: user?.plan ?? 'free',
+    planExpiresAt: user?.planExpiresAt ?? null,
+    nfcProBonusUntil: user?.nfcProBonusUntil ?? null,
+    teamProfileCount: user?.teamProfileCount ?? 6,
+  }
+  const effectivePlan = getEffectivePlan(planData)
+  const nfcBonus = getNfcBonusStatus(planData)
+  const teamPricing = effectivePlan === 'team'
+    ? calculateTeamPrice(planData.teamProfileCount)
+    : null
+
+  const adminAccess = await isAdmin()
+
   const signOutAction = async () => {
     "use server"
     await signOut({ redirectTo: "/login" })
@@ -65,6 +81,15 @@ export default async function DashboardPage() {
       scanLogs={scanLogs as any}
       stats={{ profileViews, totalClicks, bookingsThisWeek, messagesThisMonth }}
       accountMeta={{ hasPassword, isOAuth, createdAt: user?.createdAt ?? new Date() }}
+      subscriptionMeta={{
+        plan: planData.plan,
+        effectivePlan,
+        planExpiresAt: planData.planExpiresAt,
+        teamProfileCount: planData.teamProfileCount,
+        nfcBonus,
+        teamPricing,
+      }}
+      isAdmin={adminAccess}
     />
   )
 }
