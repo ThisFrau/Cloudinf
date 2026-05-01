@@ -49,9 +49,8 @@
 ========================================= */
 html {
     scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-    -moz-text-size-adjust: 100%;
-    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%; /* Chrome, Safari, Edge */
+    -moz-text-size-adjust: 100%;    /* Firefox */
 }
 
 /* will-change solo en elementos que realmente animamos al hover */

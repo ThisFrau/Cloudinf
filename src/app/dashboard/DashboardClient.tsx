@@ -360,32 +360,50 @@ export default function DashboardClient({
   return (
     <main className="container max-w-1000">
       {/* Header */}
-      <div className="dashboard-header">
-        <h1 className="name">Panel de {user.username}</h1>
-        <div className="dashboard-actions dashboard-actions-row flex-wrap-center">
-          <button type="button" aria-label="Mostrar código QR" title="Mostrar código QR" onClick={() => setShowQR(true)} className="btn-secondary-sm">
-            <i className="fa-solid fa-qrcode"></i>
-          </button>
-          <button type="button" aria-label="Vista previa del perfil" title="Vista previa del perfil" onClick={() => setShowPreview(true)} className="btn-secondary-sm">
-            <i className="fa-solid fa-mobile-screen"></i>
-          </button>
-          <button type="button" aria-label="Mi Cuenta" title="Mi Cuenta" onClick={() => setActiveTab('cuenta')} className="btn-secondary-sm">
-            <i className="fa-solid fa-circle-user"></i>
-          </button>
-          <Link href="/tienda" className="btn-secondary-sm btn-auto-width" title="Ir a la Tienda NFC">
-            <i className="fa-solid fa-store"></i>
-            <span>Tienda</span>
-          </Link>
-          {isAdmin && (
-            <Link href="/admin/coupons" className="btn-secondary-sm btn-auto-width" title="Panel de administración">
-              <i className="fa-solid fa-shield-halved"></i>
-              <span>Admin</span>
+      <div className="dh-bar">
+        <div className="dh-left">
+          <span className="dh-username">@{user.username}</span>
+        </div>
+        <div className="dh-right">
+          {/* Utilidades: icon-only */}
+          <div className="dh-icon-group">
+            <button type="button" className="dh-icon-btn" title="Código QR" aria-label="Código QR" onClick={() => setShowQR(true)}>
+              <i className="fa-solid fa-qrcode" />
+            </button>
+            <button type="button" className="dh-icon-btn" title="Vista previa" aria-label="Vista previa" onClick={() => setShowPreview(true)}>
+              <i className="fa-solid fa-mobile-screen" />
+            </button>
+            <button type="button" className="dh-icon-btn" title="Mi cuenta" aria-label="Mi cuenta" onClick={() => setActiveTab('cuenta')}>
+              <i className="fa-solid fa-circle-user" />
+            </button>
+          </div>
+
+          <span className="dh-divider" />
+
+          {/* Links secundarios */}
+          <div className="dh-icon-group">
+            <Link href="/tienda" className="dh-pill" title="Tienda NFC">
+              <i className="fa-solid fa-store" />
+              <span>Tienda</span>
             </Link>
+            {isAdmin && (
+              <Link href="/admin/coupons" className="dh-pill dh-pill-admin" title="Admin">
+                <i className="fa-solid fa-shield-halved" />
+                <span>Admin</span>
+              </Link>
+            )}
+          </div>
+
+          {/* CTA principal */}
+          {user.username ? (
+            <Link href={`/${user.username}`} target="_blank" className="dh-cta">
+              Ver perfil <i className="fa-solid fa-arrow-up-right-from-square" />
+            </Link>
+          ) : (
+            <span className="dh-cta dh-cta-disabled" title="Configurá tu username en Mi Perfil">
+              Ver perfil <i className="fa-solid fa-arrow-up-right-from-square" />
+            </span>
           )}
-          <Link href={`/${user.username}`} target="_blank" className="btn-primary btn-auto-width">
-            <i className="fa-solid fa-arrow-up-right-from-square"></i>
-            <span>Ver Perfil</span>
-          </Link>
         </div>
       </div>
 
@@ -472,6 +490,28 @@ export default function DashboardClient({
           </div>
         </div>
       )}
+
+      {/* Plan strip */}
+      <div className="plan-strip">
+        <div className="plan-strip-left">
+          <span className={`plan-badge-inline plan-badge-${subscriptionMeta.effectivePlan}`}>
+            {PLAN_LABELS[subscriptionMeta.effectivePlan]}
+          </span>
+          {subscriptionMeta.nfcBonus.active && (
+            <span className="plan-strip-bonus">
+              <i className="fa-solid fa-wifi" /> NFC Bonus · {subscriptionMeta.nfcBonus.daysLeft}d
+            </span>
+          )}
+          {subscriptionMeta.planExpiresAt && (
+            <span className="plan-strip-expiry">
+              vence {new Date(subscriptionMeta.planExpiresAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+            </span>
+          )}
+        </div>
+        <button type="button" className="plan-strip-btn" onClick={() => setActiveTab('plan')}>
+          {subscriptionMeta.effectivePlan === 'free' ? 'Mejorar plan' : 'Mi Plan'} <i className="fa-solid fa-chevron-right" />
+        </button>
+      </div>
 
       {/* Tabs */}
       <style dangerouslySetInnerHTML={{
@@ -1291,118 +1331,91 @@ export default function DashboardClient({
 
         {/* ══════════════ TAB: MI CUENTA ══════════════ */}
         {activeTab === 'cuenta' && (
-          <div>
+          <div className="form-container mb-1rem acct-card">
 
-            {/* ── Info de cuenta ── */}
-            <div className="form-container mb-1rem">
-              <h2 className="mb-1rem">Mi Cuenta</h2>
-
-              <div className="account-hero">
-                <div className="account-avatar">
-                  {(user.name || user.username || '?')[0].toUpperCase()}
-                </div>
-                <div className="account-hero-info">
-                  <p className="account-hero-name">{user.name || user.username}</p>
-                  <p className="account-hero-email">{user.email}</p>
-                </div>
-              </div>
-
-              <div className="account-info-grid">
-                <div className="account-info-item">
-                  <div className="account-info-label">Correo electrónico</div>
-                  <div className="account-info-value">{user.email || '—'}</div>
-                </div>
-                <div className="account-info-item">
-                  <div className="account-info-label">Miembro desde</div>
-                  <div className="account-info-value">
-                    {new Date(accountMeta.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </div>
-                </div>
+            {/* ── Info ── */}
+            <div className="acct-row-info">
+              <div className="acct-avatar">{(user.name || user.username || '?')[0].toUpperCase()}</div>
+              <div>
+                <p className="acct-name">{user.name || user.username}</p>
+                <p className="acct-meta">{user.email} · miembro desde {new Date(accountMeta.createdAt).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' })}</p>
               </div>
             </div>
 
-            {/* ── Cambiar email ── */}
-            <div className="form-container mb-1rem">
-              <h2 className="mb-05rem">Cambiar correo</h2>
-              <form onSubmit={async e => {
+            <div className="acct-divider" />
+
+            {/* ── Cambiar correo ── */}
+            <div className="acct-section">
+              <p className="acct-section-label">Correo electrónico</p>
+              <form className="acct-form" onSubmit={async e => {
                 e.preventDefault(); setEmailMsg(null)
                 const fd = new FormData(e.currentTarget)
                 startTransition(async () => {
                   const r = await updateEmail(fd)
                   if (r?.error) setEmailMsg({ ok: false, text: r.error })
-                  else { setEmailMsg({ ok: true, text: '✅ Correo actualizado.' }); (e.target as HTMLFormElement).reset() }
+                  else { setEmailMsg({ ok: true, text: 'Correo actualizado.' }); (e.target as HTMLFormElement).reset() }
                 })
               }}>
-                <div className="input-group">
-                  <label htmlFor="new-email">Nuevo correo electrónico</label>
-                  <input id="new-email" name="email" type="email" placeholder="nuevo@correo.com" required />
-                </div>
-                {emailMsg && <p className={emailMsg.ok ? 'text-success' : 'text-error'}>{emailMsg.text}</p>}
-                <button type="submit" className="btn-primary w-full" disabled={isPending}>Guardar correo</button>
+                <input name="email" type="email" placeholder="nuevo@correo.com" required />
+                <button type="submit" className="acct-btn" disabled={isPending}>Guardar</button>
               </form>
+              {emailMsg && <p className={emailMsg.ok ? 'text-success' : 'text-error'}>{emailMsg.text}</p>}
             </div>
 
+            <div className="acct-divider" />
+
             {/* ── Cambiar username ── */}
-            <div className="form-container mb-1rem">
-              <h2 className="mb-05rem">Cambiar username</h2>
-              <p className="bio mb-1rem">Solo letras minúsculas, números y guión bajo. Mínimo 3 caracteres.</p>
-              <form onSubmit={async e => {
+            <div className="acct-section">
+              <p className="acct-section-label">Username</p>
+              <form className="acct-form" onSubmit={async e => {
                 e.preventDefault(); setUsernameMsg(null)
                 const fd = new FormData(e.currentTarget)
                 startTransition(async () => {
                   const r = await updateUsername(fd)
                   if (r?.error) setUsernameMsg({ ok: false, text: r.error })
-                  else { setUsernameMsg({ ok: true, text: '✅ Username actualizado.' }); (e.target as HTMLFormElement).reset() }
+                  else { setUsernameMsg({ ok: true, text: 'Username actualizado.' }); (e.target as HTMLFormElement).reset() }
                 })
               }}>
-                <div className="input-group">
-                  <label htmlFor="new-username">Nuevo username</label>
-                  <input id="new-username" name="username" type="text" defaultValue={user.username || ''} placeholder="ej. juanperez" required />
-                </div>
-                {usernameMsg && <p className={usernameMsg.ok ? 'text-success' : 'text-error'}>{usernameMsg.text}</p>}
-                <button type="submit" className="btn-primary w-full" disabled={isPending}>Guardar username</button>
+                <input name="username" type="text" defaultValue={user.username || ''} placeholder="ej. juanperez" required />
+                <button type="submit" className="acct-btn" disabled={isPending}>Guardar</button>
               </form>
+              {usernameMsg && <p className={usernameMsg.ok ? 'text-success' : 'text-error'}>{usernameMsg.text}</p>}
             </div>
 
             {/* ── Cambiar contraseña ── */}
             {accountMeta.hasPassword && (
-              <div className="form-container mb-1rem">
-                <h2 className="mb-05rem">Cambiar contraseña</h2>
-                <p className="bio mb-1rem">Mínimo 8 caracteres, con al menos una letra, un número y un carácter especial.</p>
-                <form onSubmit={async e => {
-                  e.preventDefault(); setPasswordMsg(null)
-                  const fd = new FormData(e.currentTarget)
-                  startTransition(async () => {
-                    const r = await updatePassword(fd)
-                    if (r?.error) setPasswordMsg({ ok: false, text: r.error })
-                    else { setPasswordMsg({ ok: true, text: '✅ Contraseña actualizada.' }); (e.target as HTMLFormElement).reset() }
-                  })
-                }}>
-                  <div className="input-group">
-                    <label htmlFor="currentPassword">Contraseña actual</label>
-                    <input id="currentPassword" name="currentPassword" type="password" placeholder="••••••••" required />
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor="newPassword">Nueva contraseña</label>
-                    <input id="newPassword" name="newPassword" type="password" placeholder="••••••••" required />
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor="confirm">Confirmar nueva contraseña</label>
-                    <input id="confirm" name="confirm" type="password" placeholder="••••••••" required />
-                  </div>
-                  {passwordMsg && <p className={passwordMsg.ok ? 'text-success' : 'text-error'}>{passwordMsg.text}</p>}
-                  <button type="submit" className="btn-primary w-full" disabled={isPending}>Cambiar contraseña</button>
-                </form>
-              </div>
+              <>
+                <div className="acct-divider" />
+                <div className="acct-section">
+                  <p className="acct-section-label">Contraseña</p>
+                  <form className="acct-form acct-form-col" onSubmit={async e => {
+                    e.preventDefault(); setPasswordMsg(null)
+                    const fd = new FormData(e.currentTarget)
+                    startTransition(async () => {
+                      const r = await updatePassword(fd)
+                      if (r?.error) setPasswordMsg({ ok: false, text: r.error })
+                      else { setPasswordMsg({ ok: true, text: 'Contraseña actualizada.' }); (e.target as HTMLFormElement).reset() }
+                    })
+                  }}>
+                    <input name="currentPassword" type="password" placeholder="Contraseña actual" required />
+                    <input name="newPassword" type="password" placeholder="Nueva contraseña" required />
+                    <input name="confirm" type="password" placeholder="Confirmar nueva contraseña" required />
+                    <div>
+                      {passwordMsg && <p className={passwordMsg.ok ? 'text-success' : 'text-error'}>{passwordMsg.text}</p>}
+                      <button type="submit" className="acct-btn" disabled={isPending}>Actualizar</button>
+                    </div>
+                  </form>
+                </div>
+              </>
             )}
 
-            {/* ── Exportar datos ── */}
-            <div className="form-container mb-1rem">
-              <h2 className="mb-05rem">Exportar mis datos</h2>
-              <p className="bio mb-1rem">Descargá un archivo JSON con tu perfil, links y mensajes recibidos.</p>
+            <div className="acct-divider" />
+
+            {/* ── Acciones ── */}
+            <div className="acct-section acct-section-actions">
               <button
                 type="button"
-                className="btn-primary w-full"
+                className="acct-btn-ghost"
                 onClick={() => {
                   const data = {
                     exportadoEl: new Date().toISOString(),
@@ -1418,40 +1431,36 @@ export default function DashboardClient({
                   URL.revokeObjectURL(a.href)
                 }}
               >
-                <i className="fa-solid fa-download mr-4px"></i>
-                Descargar mis datos
+                <i className="fa-solid fa-download" /> Exportar datos
               </button>
-            </div>
-
-            {/* ── Eliminar cuenta ── */}
-            <div className="form-container mb-1rem">
-              <h2 className="mb-05rem">Eliminar cuenta</h2>
-              <p className="bio mb-1rem">Esta acción es irreversible. Se borrarán tu perfil, links, mensajes y todos tus datos.</p>
-              <div className="input-group mb-1rem">
-                <label>Escribí <strong style={{color:'#fff'}}>ELIMINAR</strong> para confirmar</label>
-                <input type="text" value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="ELIMINAR" />
-              </div>
-              <button
-                type="button"
-                className="btn-danger w-full"
-                disabled={deleteConfirm !== 'ELIMINAR' || isPending}
-                onClick={() => startTransition(async () => { await deleteAccount() })}
-              >
-                <i className="fa-solid fa-trash mr-4px"></i>
-                Eliminar mi cuenta permanentemente
-              </button>
-            </div>
-
-            {/* ── Cerrar sesión ── */}
-            <div className="form-container mb-1rem">
-              <h2 className="mb-05rem">Cerrar sesión</h2>
-              <p className="bio mb-1rem">Salís de tu cuenta en este dispositivo.</p>
-              <form action={signOutAction}>
-                <button type="submit" className="btn-danger w-full" disabled={isPending}>
-                  <i className="fa-solid fa-right-from-bracket mr-4px"></i>
-                  Cerrar sesión
+              <form action={signOutAction} style={{display:'contents'}}>
+                <button type="submit" className="acct-btn-ghost" disabled={isPending}>
+                  <i className="fa-solid fa-right-from-bracket" /> Cerrar sesión
                 </button>
               </form>
+            </div>
+
+            <div className="acct-divider" />
+
+            {/* ── Zona de peligro ── */}
+            <div className="acct-section">
+              <p className="acct-section-label acct-label-danger">Eliminar cuenta</p>
+              <div className="acct-form">
+                <input
+                  type="text"
+                  value={deleteConfirm}
+                  onChange={e => setDeleteConfirm(e.target.value)}
+                  placeholder='Escribí "ELIMINAR" para confirmar'
+                />
+                <button
+                  type="button"
+                  className="acct-btn acct-btn-danger"
+                  disabled={deleteConfirm !== 'ELIMINAR' || isPending}
+                  onClick={() => startTransition(async () => { await deleteAccount() })}
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
 
           </div>
@@ -2156,77 +2165,66 @@ export default function DashboardClient({
             {/* Comparativa de planes */}
             <div className="form-container mb-1rem">
               <h2 className="mb-1rem">Comparativa de Planes</h2>
-              <div className="plans-grid">
-
-                {/* Plan Gratuito */}
-                <div className={`plan-card ${subscriptionMeta.effectivePlan === 'free' ? 'plan-card-active' : ''}`}>
-                  <div className="plan-card-header">
-                    <h3>{PLAN_LABELS.free}</h3>
-                    <div className="plan-card-price">
-                      <span className="plan-price-amount">$0</span>
-                    </div>
-                  </div>
-                  <ul className="plan-features-list">
-                    {PLAN_FEATURES.free.map(f => (
-                      <li key={f}><i className="fa-solid fa-check text-success mr-4px"></i>{f}</li>
-                    ))}
-                  </ul>
-                  {subscriptionMeta.effectivePlan === 'free' && (
-                    <div className="plan-card-current-badge">Plan actual</div>
-                  )}
-                </div>
-
-                {/* Plan Pro */}
-                <div className={`plan-card plan-card-featured ${subscriptionMeta.effectivePlan === 'pro' ? 'plan-card-active' : ''}`}>
-                  <div className="plan-card-header">
-                    <h3>{PLAN_LABELS.pro} <span className="plan-badge-inline plan-badge-pro">Popular</span></h3>
-                    <div className="plan-card-price">
-                      <span className="plan-price-amount">${PLAN_PRICES.pro.toLocaleString('es-AR')}</span>
-                      <span className="plan-price-period">/mes</span>
-                    </div>
-                  </div>
-                  <ul className="plan-features-list">
-                    {PLAN_FEATURES.pro.map(f => (
-                      <li key={f}><i className="fa-solid fa-check text-success mr-4px"></i>{f}</li>
-                    ))}
-                  </ul>
-                  <div className="plan-nfc-note">
-                    <i className="fa-solid fa-nfc-signal mr-4px"></i>
-                    Tarjeta NFC: ${(44999).toLocaleString('es-AR')} + <strong>2 meses Pro gratis</strong>
-                  </div>
-                  {subscriptionMeta.effectivePlan === 'pro' ? (
-                    <div className="plan-card-current-badge">Plan actual</div>
-                  ) : (
-                    <a href="/tienda" className="btn-primary w-full text-center mt-1rem">
-                      Suscribirme al Pro
-                    </a>
-                  )}
-                </div>
-
-                {/* Plan Team */}
-                <div className={`plan-card ${subscriptionMeta.effectivePlan === 'team' ? 'plan-card-active' : ''}`}>
-                  <div className="plan-card-header">
-                    <h3>{PLAN_LABELS.team}</h3>
-                    <div className="plan-card-price">
-                      <span className="plan-price-amount">${PLAN_PRICES.team.toLocaleString('es-AR')}</span>
-                      <span className="plan-price-period">/mes base</span>
-                    </div>
-                  </div>
-                  <ul className="plan-features-list">
-                    {PLAN_FEATURES.team.map(f => (
-                      <li key={f}><i className="fa-solid fa-check text-success mr-4px"></i>{f}</li>
-                    ))}
-                  </ul>
-                  {subscriptionMeta.effectivePlan === 'team' ? (
-                    <div className="plan-card-current-badge">Plan actual</div>
-                  ) : (
-                    <a href="/tienda" className="btn-secondary w-full text-center mt-1rem">
-                      Ver Plan Team
-                    </a>
-                  )}
-                </div>
-
+              <div className="plan-compare-table-wrap">
+                <table className="plan-compare-table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th className={subscriptionMeta.effectivePlan === 'free' ? 'pct-active' : ''}>
+                        {PLAN_LABELS.free}
+                        {subscriptionMeta.effectivePlan === 'free' && <span className="pct-current-label">actual</span>}
+                      </th>
+                      <th className={subscriptionMeta.effectivePlan === 'pro' ? 'pct-active' : ''}>
+                        {PLAN_LABELS.pro} <span className="plan-badge-inline plan-badge-pro" style={{fontSize:'0.6rem'}}>$3.999</span>
+                        {subscriptionMeta.effectivePlan === 'pro' && <span className="pct-current-label">actual</span>}
+                      </th>
+                      <th className={subscriptionMeta.effectivePlan === 'team' ? 'pct-active' : ''}>
+                        {PLAN_LABELS.team} <span className="plan-badge-inline plan-badge-team" style={{fontSize:'0.6rem'}}>$6.999</span>
+                        {subscriptionMeta.effectivePlan === 'team' && <span className="pct-current-label">actual</span>}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {([
+                      { label: 'Links',                           free: 'Hasta 3', pro: 'Ilimitados',  team: 'Ilimitados'  },
+                      { label: 'WhatsApp',                        free: true,      pro: true,           team: true          },
+                      { label: 'Todas las redes sociales',        free: false,     pro: true,           team: true          },
+                      { label: 'Estadísticas de visitas',         free: false,     pro: true,           team: true          },
+                      { label: 'Personalización de colores',      free: false,     pro: true,           team: true          },
+                      { label: 'Sin marca de agua',               free: false,     pro: true,           team: true          },
+                      { label: 'Bonus NFC (2 meses Pro gratis)',  free: false,     pro: true,           team: true          },
+                      { label: 'Múltiples perfiles',              free: false,     pro: false,          team: '6+'          },
+                      { label: 'Perfiles adicionales',            free: false,     pro: false,          team: '$999/mes'    },
+                      { label: 'Descuentos por volumen',          free: false,     pro: false,          team: true          },
+                      { label: 'Panel de administración',         free: false,     pro: false,          team: true          },
+                    ] as { label: string; free: boolean|string; pro: boolean|string; team: boolean|string }[]).map(row => {
+                      const vals: Record<string, boolean|string> = { free: row.free, pro: row.pro, team: row.team }
+                      const cell = (v: boolean|string, plan: string) => {
+                        const isCurrentPlan = subscriptionMeta.effectivePlan === plan
+                        const unavailable = v === false
+                        return (
+                          <td key={plan} className={`${isCurrentPlan ? 'pct-active' : ''} ${unavailable && isCurrentPlan ? 'pct-locked' : ''}`}>
+                            {typeof v === 'string' ? v : v
+                              ? <i className="fa-solid fa-check pct-check" />
+                              : <i className="fa-solid fa-lock pct-lock" />}
+                          </td>
+                        )
+                      }
+                      return (
+                        <tr key={row.label}>
+                          <td className="pct-feature">{row.label}</td>
+                          {(['free','pro','team'] as const).map(p => cell(vals[p], p))}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
+              {subscriptionMeta.effectivePlan !== 'team' && (
+                <a href="/tienda" className="btn-primary text-center mt-1rem" style={{display:'block'}}>
+                  {subscriptionMeta.effectivePlan === 'free' ? 'Mejorar a Pro →' : 'Ver Plan Team →'}
+                </a>
+              )}
             </div>
           </div>
         )}

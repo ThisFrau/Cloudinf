@@ -2,6 +2,9 @@ import Link from 'next/link'
 import NavbarAuth from '../_components/NavbarAuth'
 import CouponWidget from './CouponWidget'
 import './tienda.css'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/prisma'
+import { getEffectivePlan, PLAN_LABELS } from '@/lib/plans'
 
 const WA_NUMBER = '5491100000000' // Reemplazar con el número de WhatsApp del negocio
 
@@ -10,49 +13,34 @@ function waLink(text: string) {
 }
 
 const PLAN_FREE_FEATURES = [
-  { label: 'Perfil digital personalizable', ok: true },
-  { label: 'Links y redes sociales ilimitados', ok: true },
-  { label: 'Agenda de turnos integrada', ok: true },
-  { label: 'Formulario de contacto', ok: true },
-  { label: 'URL personalizada (cloudinf.com/tu-nombre)', ok: true },
-  { label: 'Estadísticas básicas de vistas', ok: true },
-  { label: 'Badge verificado', ok: false },
-  { label: 'Perfil de negocio avanzado', ok: false },
-  { label: 'Soporte prioritario', ok: false },
+  { label: '1 perfil', ok: true },
+  { label: 'Hasta 3 links + WhatsApp', ok: true },
+  { label: 'URL personalizada', ok: true },
+  { label: 'Links ilimitados', ok: false },
+  { label: 'Todas las redes sociales', ok: false },
+  { label: 'Estadísticas de visitas', ok: false },
+  { label: 'Personalización de colores', ok: false },
+  { label: 'Sin marca de agua', ok: false },
 ]
 
 const PLAN_PLUS_FEATURES = [
-  { label: 'Todo lo del plan Común', ok: true },
-  { label: 'Badge de verificación ✓', ok: true },
-  { label: 'Perfil de negocio completo (menú, Wi-Fi, mapa)', ok: true },
-  { label: 'Estadísticas avanzadas por link', ok: true },
-  { label: 'Integración de Spotify en el perfil', ok: true },
-  { label: 'Galería de fotos carousel', ok: true },
-  { label: 'Estado temporal en el perfil (24hs)', ok: true },
-  { label: 'Formulario de presupuesto personalizable', ok: true },
-  { label: 'Contador de Instagram en el perfil', ok: true },
-  { label: 'Modo "fuera de horario" automático', ok: true },
-  { label: 'Botón de descarga de PDF / catálogo', ok: true },
-  { label: 'AFIP: CUIT y link de facturación', ok: true },
-  { label: 'Programa de referidos (mes gratis)', ok: true },
-  { label: 'Soporte por email prioritario', ok: true },
+  { label: 'Todo lo del plan Gratuito', ok: true },
+  { label: 'Links ilimitados', ok: true },
+  { label: 'Todas las redes sociales', ok: true },
+  { label: 'Estadísticas de visitas', ok: true },
+  { label: 'Personalización de colores', ok: true },
+  { label: 'Sin marca de agua', ok: true },
+  { label: '2 meses Pro al activar tarjeta NFC', ok: true },
 ]
 
 const PLAN_PREMIUM_FEATURES = [
-  { label: 'Todo lo del plan Plus', ok: true },
-  { label: '30% de descuento en tarjeta NFC física', ok: true },
-  { label: 'Asistencia de diseño de perfil', ok: true },
-  { label: 'Sin marca de agua Cloudinf', ok: true },
-  { label: 'Acceso anticipado a nuevas funciones', ok: true },
-  { label: 'Soporte 24/7 por WhatsApp', ok: true },
-  { label: 'Hasta 3 perfiles vinculados', ok: true },
-  { label: 'Feed de Instagram automático en el perfil', ok: true },
-  { label: 'QR dinámico (cambiá el destino sin reimprimir)', ok: true },
-  { label: 'Historial de escaneos de tarjeta NFC/QR', ok: true },
-  { label: 'Modo campaña (banner promocional temporal)', ok: true },
-  { label: 'Perfiles de equipo en el perfil', ok: true },
-  { label: 'Dashboard de agencia (acceso de solo lectura)', ok: true },
-  { label: 'Gestión prioritaria de dominio propio', ok: true },
+  { label: 'Todo lo incluido en Pro', ok: true },
+  { label: '6 perfiles incluidos', ok: true },
+  { label: 'Perfiles adicionales $999/mes', ok: true },
+  { label: '5% dto. desde 20 perfiles', ok: true },
+  { label: '10% dto. desde 30 perfiles', ok: true },
+  { label: '20% dto. desde 40 perfiles', ok: true },
+  { label: 'Panel de administración', ok: true },
 ]
 
 const NFC_INCLUDES = [
@@ -64,34 +52,20 @@ const NFC_INCLUDES = [
   { icon: 'fa-infinity', label: 'Sin suscripción — pago único para siempre' },
 ]
 
-const COMPARE_ROWS = [
-  { feature: 'Perfil digital',                     free: true,  plus: true,  premium: true  },
-  { feature: 'Links ilimitados',                   free: true,  plus: true,  premium: true  },
-  { feature: 'Agenda de turnos',                   free: true,  plus: true,  premium: true  },
-  { feature: 'Estadísticas básicas',               free: true,  plus: true,  premium: true  },
-  { feature: 'Badge verificado',                   free: false, plus: true,  premium: true  },
-  { feature: 'Perfil de negocio',                  free: false, plus: true,  premium: true  },
-  { feature: 'Estadísticas avanzadas',             free: false, plus: true,  premium: true  },
-  { feature: 'Integración Spotify',                free: false, plus: true,  premium: true  },
-  { feature: 'Estado temporal en perfil',          free: false, plus: true,  premium: true  },
-  { feature: 'Formulario de presupuesto',          free: false, plus: true,  premium: true  },
-  { feature: 'Instagram en el perfil',             free: false, plus: true,  premium: true  },
-  { feature: 'Modo fuera de horario',              free: false, plus: true,  premium: true  },
-  { feature: 'PDF / catálogo descargable',         free: false, plus: true,  premium: true  },
-  { feature: 'AFIP y facturación',                 free: false, plus: true,  premium: true  },
-  { feature: 'Programa de referidos',              free: false, plus: true,  premium: true  },
-  { feature: 'Soporte prioritario',                free: false, plus: true,  premium: true  },
-  { feature: 'Sin marca de agua',                  free: false, plus: false, premium: true  },
-  { feature: 'Descuento 30% en tarjeta NFC',       free: false, plus: false, premium: true  },
-  { feature: 'Asistencia de diseño',               free: false, plus: false, premium: true  },
-  { feature: 'Soporte 24/7 WhatsApp',              free: false, plus: false, premium: true  },
-  { feature: 'Hasta 3 perfiles',                   free: false, plus: false, premium: true  },
-  { feature: 'Feed Instagram automático',          free: false, plus: false, premium: true  },
-  { feature: 'QR dinámico',                        free: false, plus: false, premium: true  },
-  { feature: 'Historial de escaneos NFC/QR',       free: false, plus: false, premium: true  },
-  { feature: 'Modo campaña',                       free: false, plus: false, premium: true  },
-  { feature: 'Perfiles de equipo',                 free: false, plus: false, premium: true  },
-  { feature: 'Dashboard de agencia',               free: false, plus: false, premium: true  },
+type CVal = boolean | string
+const COMPARE_ROWS: { feature: string; free: CVal; plus: CVal; team: CVal }[] = [
+  { feature: 'Perfiles',                         free: '1',       plus: '1',           team: '6+'          },
+  { feature: 'Links',                            free: 'Hasta 3', plus: 'Ilimitados',  team: 'Ilimitados'  },
+  { feature: 'WhatsApp incluido',                free: true,      plus: true,          team: true          },
+  { feature: 'Todas las redes sociales',         free: false,     plus: true,          team: true          },
+  { feature: 'Estadísticas de visitas',          free: false,     plus: true,          team: true          },
+  { feature: 'Personalización de colores',       free: false,     plus: true,          team: true          },
+  { feature: 'Sin marca de agua',                free: false,     plus: true,          team: true          },
+  { feature: 'Bonus NFC (2 meses Pro gratis)',   free: false,     plus: true,          team: true          },
+  { feature: 'Múltiples perfiles',               free: false,     plus: false,         team: true          },
+  { feature: 'Perfiles adicionales ($999/mes)',  free: false,     plus: false,         team: true          },
+  { feature: 'Descuentos por volumen',           free: false,     plus: false,         team: true          },
+  { feature: 'Panel de administración',          free: false,     plus: false,         team: true          },
 ]
 
 const FAQS = [
@@ -121,7 +95,26 @@ const FAQS = [
   },
 ]
 
-export default function TiendaPage() {
+export default async function TiendaPage() {
+  const session = await auth()
+  let userPlan: string | null = null
+
+  if (session?.user?.id) {
+    const u = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { plan: true, planExpiresAt: true, nfcProBonusUntil: true, teamProfileCount: true },
+    })
+    if (u) {
+      const eff = getEffectivePlan({
+        plan: u.plan,
+        planExpiresAt: u.planExpiresAt,
+        nfcProBonusUntil: u.nfcProBonusUntil,
+        teamProfileCount: u.teamProfileCount,
+      })
+      userPlan = PLAN_LABELS[eff]
+    }
+  }
+
   return (
     <div className="st-root">
 
@@ -188,6 +181,15 @@ export default function TiendaPage() {
         </div>
       </section>
 
+      {/* ── Plan banner (logged-in users) ───────────── */}
+      {userPlan && (
+        <div className="st-plan-banner">
+          <i className="fa-solid fa-circle-check st-plan-banner-icon" />
+          Tu plan actual: <strong>{userPlan}</strong>
+          <Link href="/dashboard" className="st-plan-banner-link">Ver en el dashboard</Link>
+        </div>
+      )}
+
       {/* ── Plans ───────────────────────────────────── */}
       <section className="st-section">
         <div className="st-section-header">
@@ -203,11 +205,11 @@ export default function TiendaPage() {
 
         <div className="st-plans">
 
-          {/* ── Pack Común ─── */}
+          {/* ── Gratuito ─── */}
           <div className="st-plan st-plan-free">
             <div>
               <div className="st-plan-top">
-                <span className="st-plan-name">Pack Común</span>
+                <span className="st-plan-name">Gratuito</span>
                 <span className="st-plan-badge st-badge-free">GRATIS</span>
               </div>
               <div className="st-plan-price-row">
@@ -238,19 +240,19 @@ export default function TiendaPage() {
             </Link>
           </div>
 
-          {/* ── Pack Plus ─── */}
+          {/* ── Pro ─── */}
           <div className="st-plan st-plan-featured st-plan-plus">
             <div className="st-plan-glow" />
             <div className="st-plan-popular">MÁS POPULAR</div>
 
             <div>
               <div className="st-plan-top">
-                <span className="st-plan-name">Pack Plus</span>
+                <span className="st-plan-name">Pro</span>
                 <span className="st-plan-badge st-badge-plus">PLUS</span>
               </div>
               <div className="st-plan-price-row">
                 <span className="st-plan-currency">$</span>
-                <span className="st-plan-amount">3.000</span>
+                <span className="st-plan-amount">3.999</span>
               </div>
               <p className="st-plan-period">por mes · en pesos argentinos</p>
               <p className="st-plan-desc">
@@ -272,26 +274,26 @@ export default function TiendaPage() {
 
             <CouponWidget
               context="subscription"
-              basePrice={3000}
-              baseWaMsg="Hola! Quiero contratar el Plan Plus de Cloudinf ($3.000/mes). ¿Cómo procedo?"
+              basePrice={3999}
+              baseWaMsg="Hola! Quiero contratar el Plan Plus de Cloudinf ($3.999/mes). ¿Cómo procedo?"
               buyLabel="Contratar Plus"
               btnClass="st-plan-btn st-btn-plus"
               btnIcon="fa-whatsapp fa-brands"
             />
           </div>
 
-          {/* ── Pack Premium ─── */}
+          {/* ── Team ─── */}
           <div className="st-plan st-plan-premium st-plan-premium-card">
             <div className="st-plan-glow st-plan-glow-pink" />
 
             <div>
               <div className="st-plan-top">
-                <span className="st-plan-name">Pack Premium</span>
+                <span className="st-plan-name">Team</span>
                 <span className="st-plan-badge st-badge-premium">PREMIUM</span>
               </div>
               <div className="st-plan-price-row">
                 <span className="st-plan-currency">$</span>
-                <span className="st-plan-amount">5.000</span>
+                <span className="st-plan-amount">6.999</span>
               </div>
               <p className="st-plan-period">por mes · en pesos argentinos</p>
               <p className="st-plan-desc">
@@ -310,8 +312,8 @@ export default function TiendaPage() {
 
             <CouponWidget
               context="subscription"
-              basePrice={5000}
-              baseWaMsg="Hola! Quiero contratar el Plan Premium de Cloudinf ($5.000/mes). ¿Cómo procedo?"
+              basePrice={6999}
+              baseWaMsg="Hola! Quiero contratar el Plan Premium de Cloudinf ($6.999/mes). ¿Cómo procedo?"
               buyLabel="Contratar Premium"
               btnClass="st-plan-btn st-btn-premium"
               btnIcon="fa-whatsapp fa-brands"
@@ -332,18 +334,33 @@ export default function TiendaPage() {
           <thead>
             <tr>
               <th>Función</th>
-              <th>Común</th>
-              <th className="col-featured">Plus</th>
-              <th>Premium</th>
+              <th className={userPlan === 'Gratuito' ? 'col-user-plan' : ''}>
+                Gratuito
+                {userPlan === 'Gratuito' && <span className="col-user-badge">Tu plan</span>}
+              </th>
+              <th className={`col-featured${userPlan === 'Pro' ? ' col-user-plan' : ''}`}>
+                Pro
+                {userPlan === 'Pro' && <span className="col-user-badge">Tu plan</span>}
+              </th>
+              <th className={userPlan === 'Team' ? 'col-user-plan' : ''}>
+                Team
+                {userPlan === 'Team' && <span className="col-user-badge">Tu plan</span>}
+              </th>
             </tr>
           </thead>
           <tbody>
             {COMPARE_ROWS.map(row => (
               <tr key={row.feature}>
                 <td>{row.feature}</td>
-                <td>{row.free  ? <i className="fa-solid fa-check" /> : <i className="fa-solid fa-xmark" />}</td>
-                <td className="col-featured">{row.plus    ? <i className="fa-solid fa-check" /> : <i className="fa-solid fa-xmark" />}</td>
-                <td>{row.premium ? <i className="fa-solid fa-check" /> : <i className="fa-solid fa-xmark" />}</td>
+                <td className={userPlan === 'Gratuito' ? 'col-user-plan' : ''}>
+                  {typeof row.free === 'string' ? row.free : row.free ? <i className="fa-solid fa-check" /> : <i className="fa-solid fa-xmark st-xmark" />}
+                </td>
+                <td className={`col-featured${userPlan === 'Pro' ? ' col-user-plan' : ''}`}>
+                  {typeof row.plus === 'string' ? row.plus : row.plus ? <i className="fa-solid fa-check" /> : <i className="fa-solid fa-xmark st-xmark" />}
+                </td>
+                <td className={userPlan === 'Team' ? 'col-user-plan' : ''}>
+                  {typeof row.team === 'string' ? row.team : row.team ? <i className="fa-solid fa-check" /> : <i className="fa-solid fa-xmark st-xmark" />}
+                </td>
               </tr>
             ))}
           </tbody>

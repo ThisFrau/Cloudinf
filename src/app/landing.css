@@ -1185,7 +1185,7 @@
   padding: 0 24px 128px;
 }
 
-.lp-how-inner { }
+.lp-how-inner { display: contents; }
 
 .lp-steps {
   display: flex;
@@ -1280,7 +1280,7 @@
   padding: 0 24px 128px;
 }
 
-.lp-pricing-inner { }
+.lp-pricing-inner { display: contents; }
 
 .lp-plans {
   display: grid;
